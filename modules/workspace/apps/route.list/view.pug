@@ -1,0 +1,39 @@
+.workspace-list
+    .workspace-list-header
+        .page-header.d-print-none
+            .row.align-items-center
+                .col-auto
+                    span.status-indicator.status-indicator-animated.status-primary
+                        span.status-indicator-circle
+                        span.status-indicator-circle
+                        span.status-indicator-circle
+
+                .col(style="line-height: 1;")
+                    h2.page-title Route
+                    .text-muted
+                        ul.list-inline.list-inline-dots.mb-0
+                            li.list-inline-item application routers
+                
+                .col-2
+                    input.form-control(type="text" placeholder="Search..." ng-model="search.text" ng-change="event.search(search.text)")
+                
+                .col-auto.actions
+                    a.btn.btn-primary.mr-1(ng-click="workflow.import()")
+                        i.fa-solid.fa-cloud-arrow-up
+                    a.btn.btn-primary(href="")
+                        i.fa-solid.fa-plus
+    
+    .workflow-list-item
+        .container.pt-4
+            table.table.table-hover.text-left
+                thead
+                    tr
+                        th.w-1 ROUTE
+                        th TITLE
+                        th.w-1 UPDATED
+
+                tbody
+                    tr(ng-repeat="item in data" ng-if="!item.hide")
+                        td.w-1.text-left {{item.package.route}}
+                        td.text-left {{item.package.title}}
+                        td.w-1 {{datedisplay(item.package.updated)}}

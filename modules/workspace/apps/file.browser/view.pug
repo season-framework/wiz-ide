@@ -1,0 +1,166 @@
+.workspace-list
+    div(style="display: none;")
+        form#file-form
+            input#file-upload.form-control(type='file' name='file[]' multiple)
+
+    .workspace-list-header
+        .page-header.d-print-none
+            .row.align-items-center
+                .col-auto
+                    span.status-indicator.status-indicator-animated.status-primary
+                        span.status-indicator-circle
+                        span.status-indicator-circle
+                        span.status-indicator-circle
+
+                .col(style="line-height: 1;")
+                    h2.page-title= title
+                    .text-muted
+                        ul.list-inline.list-inline-dots.mb-0
+                            li.list-inline-item= description
+                
+                .col-auto.actions(ng-if="viewer.mode")
+                    .btn.btn-light(ng-click="viewer.save()" ng-if="viewer.mode == 'code'")
+                        i.fa-solid.fa-save.mr-2
+                        span Save
+
+                    .btn.btn-primary(ng-click="viewer.close()")
+                        i.fa-solid.fa-xmark.mr-2
+                        span Close
+                    
+                .col-auto.actions(ng-if="!viewer.mode")
+                    .btn.btn-light(ng-click="api.remove_all(data.checked)" ng-if="data.checked.length > 0")
+                        i.fa-solid.fa-trash.mr-2
+                        span Delete
+
+                    .btn.btn-light(ng-click="event.create()")
+                        i.fa-solid.fa-plus.mr-2
+                        span Create
+
+                    .btn.btn-primary(ng-click="event.upload()")
+                        i.fa-solid.fa-upload.mr-2
+                        span Upload
+    
+    .workspace-container
+        .side-menu
+            .item-list.p-3.noselect
+                script(type="text/ng-template" id="tree.html").
+                    <div class="filetree">
+                        <div class="title d-flex {{!viewer.mode ? (query.path == item.path ? 'active' : '') : (viewer.path == item.path ? 'active' : '') }}" ng-click="tree.load(item)" ng-dblclick="load(item)">
+                            <span>
+                                <i class="fas {{item.icon}} mr-1"></i>
+                                <span>{{item.display ? item.display : item.name}}</span>
+                            </span>
+                        </div>
+                        <div class="sub">
+                            <div ng-repeat="item in item.sub" ng-include="'tree.html'"></div>
+                        </div>
+                    </div>
+                
+                .tree-container
+                    .root-tree(ng-repeat="item in tree.data" ng-include="'tree.html'")
+
+        .main-context(ng-if="viewer.mode")
+            .d-flex.navigation(style="padding-left: 12px;")                
+                .navigate-path
+                    span= "/" + target
+                    span /{{viewer.path}}
+
+            .list-area(ng-if="viewer.mode == 'image'")
+                table.list-area-table
+                    tr
+                        td
+                            img(ng-src="{{viewer.data}}")
+                
+            .code-editor(ng-if="viewer.mode == 'code'")
+                div(ng-model="viewer.data" ui-monaco-opts="viewer.code_property" ui-monaco)
+
+        .main-context(class="{{query.path != '' ? 'active' : ''}}" ng-if="!viewer.mode")
+            .workspace-loader(ng-if="loader")
+                table
+                    tr
+                        td
+                            .spinner-border.text-primary
+
+            .d-flex.navigation(style="padding-left: 12px;")
+                .selection-area.mr-3
+                    input.form-check-input(type="checkbox" ng-click="event.check()" ng-model="data.checked_all")
+                
+                .navigate-path
+                    span= "/" + target
+                    span /{{query.path}}
+                    
+            .list-back(ng-if="query.path != ''")
+                table.table.table-sm.table-hover.table-vcenter
+                    tr
+                        td.text-left.cursor-pointer(ng-click="load_parent()")
+                            svg.icon.mr-2(xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round")
+                                path(stroke="none" d="M0 0h24v24H0z" fill="none")
+                                path(d="M18 18h-6a3 3 0 0 1 -3 -3v-10l-4 4m8 0l-4 -4")
+                            span ...
+
+            .list-area(ng-drop="event.drop")
+                table.table.table-sm.table-hover.table-vcenter
+                    tr(ng-repeat="file in files")
+                        td.w-1.pr-0
+                            input.form-check-input(type="checkbox" ng-model="file.checked" ng-click="event.check(file)")
+                        td.w-1.pr-0(ng-click="event.check(file)")
+                            .avatar-area.avatar-area-sm
+                                .avatar-container(class="{{file.type == 'folder' ? 'folder' : ''}}")
+                                    i.fa-solid.fa-file(ng-if="file.type == 'file'")
+                                    i.fa-solid.fa-folder(ng-if="file.type == 'folder'")
+                        td.text-left(ng-if="!file.edit" ng-click="event.check(file)")
+                            a(ng-click="load(file)") {{file.name}}
+                        td.text-left(ng-if="file.edit")
+                            .d-flex
+                                input.form-control(ng-model="file.rename" ng-enter="api.rename(file)")
+                                .btn.btn-primary.btn-circle.ml-2(style="width: 36px;" ng-click="api.rename(file)")
+                                    i.fa-solid.fa-check
+                        td.w-1.text-right.text-muted(ng-click="event.check(file)") {{display.timer(file.ctime)}}
+                        td.w-1.text-right.text-muted(ng-click="event.check(file)") {{display.filesize(file.size)}}
+                        td.w-1.text-right.pr-5.actions
+                            a.btn.btn-sm.btn-white(ng-href="{{download(file)}}" target="_blank")
+                                i.fa-solid.fa-download
+                            
+                            .dropdown
+                                button.btn.btn-white.btn-sm(data-bs-toggle="dropdown" aria-expanded="false")
+                                    i.fa-solid.fa-ellipsis-vertical
+                                ul.dropdown-menu
+                                    li
+                                        a.dropdown-item(ng-click="event.rename(file)")
+                                            i.fa-solid.fa-pen-to-square
+                                            span Rename
+                                    li
+                                        a.dropdown-item(ng-href="{{download(file)}}" target="_blank")
+                                            i.fa-solid.fa-download
+                                            span Download
+                                    li
+                                        a.dropdown-item(ng-click="api.remove(file)")
+                                            i.fa-solid.fa-trash
+                                            span Delete
+
+    #offcanvas-create-folder.offcanvas.offcanvas-end(tabindex="-1" style="max-width: 480px;")
+        .offcanvas-header
+            h3.p-0.m-0 Create File/Folder
+            .close(type="button" data-bs-dismiss="offcanvas" aria-label="Close")
+                i.fa-solid.fa-xmark
+
+        .offcanvas-body.p-4
+            .mb-3
+                .form-selectgroup
+                    label.form-selectgroup-item
+                        input.form-selectgroup-input(type="radio" name="newitemtype" value="folder" ng-model="data.newitem.type")
+                        span.form-selectgroup-label
+                            i.fa-solid.fa-folder.mr-2
+                            span Folder
+                    label.form-selectgroup-item
+                        input.form-selectgroup-input(type="radio" name="newitemtype" value="file" ng-model="data.newitem.type")
+                        span.form-selectgroup-label
+                            i.fa-solid.fa-file.mr-2
+                            span File
+
+            .mb-3
+                input.form-control.form-control-round(type="text" ng-model="data.newitem.name" placeholder="Folder Name" ng-enter="api.create(data.newitem)")
+
+            .mt-4.text-right
+                .btn.btn-circle.btn-white.mr-1(data-bs-dismiss="offcanvas" aria-label="Close") Cancel
+                .btn.btn-circle.btn-primary(ng-click="api.create(data.newitem)") Create

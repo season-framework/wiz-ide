@@ -1,0 +1,9 @@
+{
+    "id": "apps",
+    "title": "/apps",
+    "route": "/apps/<path:path>",
+    "viewuri": "/apps",
+    "created": "2021-11-28 14:09:14",
+    "updated": "2022-01-05 15:29:21",
+    "controller": ""
+}

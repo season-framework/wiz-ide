@@ -1,0 +1,5 @@
+wiz.response.render("/browser/controller", "file.browser", target="interfaces/controller", title="Controller", description="Controller for apps: wiz.controller('name')")
+wiz.response.render("/browser/model", "file.browser", target="interfaces/model", title="Model", description="Model for apps: wiz.model('name')")
+wiz.response.render("/browser/theme", "file.browser", target="themes", title="Themes", description="Theme for apps: wiz.theme('themename').layout('layoutname').view('view.pug')")
+wiz.response.render("/browser/resources", "file.browser", target="resources", title="Resources", description="Resources for apps: /resources/path/for/static/file")
+wiz.response.render("/browser/config", "file.browser", target="config", title="Config", description="Config for apps: wiz.config('name')")
