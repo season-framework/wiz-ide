@@ -235,7 +235,7 @@ th, td {
     }
 
     .nav-link.active {
-        font-family: 'MAIN-EB';
+        font-family: 'wiz-eb';
         color: inherit;
         border-bottom: 1px solid #fff;
     }
@@ -244,7 +244,7 @@ th, td {
 .card-header {
     .btn {
         padding: 4px 12px;
-        font-family: 'MAIN-EB';
+        font-family: 'wiz-eb';
         font-size: 14px;
     }
 }
@@ -439,11 +439,16 @@ $radius: 24px;
 
 .filetree .title.active {
     background-color: $color-primary-lt;
-	font-family: MAIN-EB;
+	font-family: 'wiz-eb';
 }
 
 .filetree .sub {
 	padding-left: 16px;
+}
+
+.filetree i {
+    width: 14px;
+    text-align: center;
 }
 
 .list-area-table {

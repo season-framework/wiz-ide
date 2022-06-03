@@ -27,7 +27,7 @@
             .row 
                 .col-md-3
                     .card.p-0
-                        .card-header.p-2.d-block.text-center
+                        .card-header.p-2.d-block.text-center.bg-primary
                             h4.card-title Categories
 
                         .card-body.p-0
@@ -39,10 +39,10 @@
                                 a.list-group-item.list-group-item-action.d-flex.align-items-center.cursor-pointer(ng-click="event.category(category.id)" class="{{category.id == hash ? 'active' : ''}}" ng-repeat="category in categoires")
                                     | {{category.title}}
                                     small.text-muted.ml-auto {{facet.category[category.id] ? facet.category[category.id] : '0'}}
-                .col-md-9
+                .col-md-9.pr-3.pl-3
                     table.table.table-hover.text-left
                         thead
-                            tr
+                            tr.bg-primary
                                 th.w-1 ID
                                 th TITLE
                                 th.w-1 CATEGORY
@@ -50,7 +50,9 @@
 
                         tbody
                             tr(ng-repeat="item in data" ng-if="!item.hide")
-                                td.w-1.text-left {{item.package.id}}
-                                td.text-left {{item.package.title}}
+                                td.w-1.text-left 
+                                    a(href="{$ wiz.url('ui/workspace/apps/editor') + '#' $}{{item.package.id}}") {{item.package.id}}
+                                td.text-left
+                                    a(href="{$ wiz.url('ui/workspace/apps/editor') + '#' $}{{item.package.id}}") {{item.package.title}}
                                 td.w-1.text-left {{item.package.category}}
                                 td.w-1 {{datedisplay(item.package.updated)}}

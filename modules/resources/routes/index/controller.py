@@ -1,1 +1,0 @@
-wiz.response.render("list")

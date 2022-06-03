@@ -1,12 +1,12 @@
 {
-    "id": "list",
-    "title": "route/list",
+    "id": "route.list",
+    "title": "route.list",
     "properties": {
         "html": "pug",
         "js": "javascript",
         "css": "scss"
     },
-    "viewuri": "/hub/apps",
+    "viewuri": "",
     "created": "2022-04-27 15:42:48",
     "updated": "2022-05-23 21:22:26",
     "controller": "",
