@@ -1,14 +1,4 @@
-.page.aside-page
-    .floating-menu
-        .btn.btn-primary.btn-circle.mr-1(ng-click="layout.change(layout.active_layout <= 3 ? layout.active_layout + 3 : layout.active_layout)" ng-if="layout.active_layout <= 3")
-            i.fa-solid.fa-terminal
-
-        .btn.btn-primary.btn-circle.mr-1(ng-click="viewer.info.toggle()" ng-if="!viewer.info.show")
-            i.fa-solid.fa-info
-        
-        .btn.btn-primary.btn-circle(ng-click="app.save()")
-            i.fa-solid.fa-save
-
+.page.aside-page(class="{{workspace.mode}}")
     aside.navbar.navbar-vertical.navbar-expand-lg.navbar-side
         .container
             .navbar-brand-container.bg-primary
@@ -18,15 +8,6 @@
                 a.navbar-brand.navbar-brand-autodark.d-none-navbar-horizontal.pr-0.m-0(href="{$ wiz.url() $}")
                     .text-center
                         img.m-0(src="{$ wiz.url.resource('img/logo-white.png') $}" style='height:36px;')
-
-            .navbar-sub-menu
-                .menu-list
-                    .menu-item(style="flex: auto;")
-                        select.form-select.form-select-sm
-                            option(value="master") master
-                            option(value="test") test
-                    .menu-item.ml-auto
-                        a.btn.btn-sm.btn-primary(style="padding: 2px 6px;" href="?dev=true") develop
 
             .footer-menu
                 .search
@@ -64,35 +45,38 @@
                                 span.status-indicator-circle
 
                         .col(style="line-height: 1;")
-                            h2.page-title Apps
+                            h2.page-title App Editor
                             .text-muted
                                 ul.list-inline.list-inline-dots.mb-0
-                                    li.list-inline-item applications          
+                                    li.list-inline-item {{app.data.package.title}}
 
-                        .col-auto.actions.action-layout
-                            .btn-group
-                                .btn.btn-sm(ng-class="layout.active_layout % 3 == 1 ? 'btn-primary' : 'btn-white'" ng-click="layout.change(layout.active_layout > 3 ? 4 : 1)")
-                                    .layout-selector(ng-class="layout.active_layout % 3 == 1 ? 'active' : ''")
-                                        .layout-icon
-                                            .layout-row
-                                                .layout-column
-                                .btn.btn-sm(ng-class="layout.active_layout % 3 == 2 ? 'btn-primary' : 'btn-white'" ng-click="layout.change(layout.active_layout > 3 ? 5 : 2)")
-                                    .layout-selector(ng-class="layout.active_layout % 3 == 2 ? 'active' : ''")
-                                        .layout-icon
-                                            .layout-row
-                                                .layout-column
-                                                .layout-column
-                                .btn.btn-sm(ng-class="layout.active_layout % 3 == 0 ? 'btn-primary' : 'btn-white'" ng-click="layout.change(layout.active_layout > 3 ? 6 : 3)")
-                                    .layout-selector(ng-class="layout.active_layout % 3 == 0 ? 'active' : ''")
-                                        .layout-icon
-                                            .layout-row
-                                                .layout-column
-                                                .layout-column
-                                                .layout-column
+                        .col-auto.actions.mr-1
+                            .dropdown
+                                button.btn.btn-secondary.dropdown-toggle(type="button" data-bs-toggle="dropdown" aria-expanded="false")= branch
+                                ul.dropdown-menu
+                                    - each item in branches
+                                        li
+                                            a.dropdown-item(href="?branch={$ item $}{{'#' + data.app_id}}")= item
 
-                        .col-auto.actions
-                            a.btn.btn-primary.mr-1(ng-click="workflow.import()")
+                        .col-auto.actions.if-desktop
+                            - if is_dev == False
+                                a.btn.btn-white.mr-1(href="?dev=true{{'#' + data.app_id}}") product
+                            - else
+                                a.btn.btn-primary.mr-1(href="?dev=false{{'#' + data.app_id}}") develop
+                            
+                            a.btn.btn-primary.mr-1(ng-click="")
+                                i.fa-solid.fa-cloud-arrow-down
+
+                            a.btn.btn-primary.mr-1(ng-click="")
                                 i.fa-solid.fa-cloud-arrow-up
+
+                            a.btn.btn-primary.mr-1(ng-click="")
+                                i.fa-solid.fa-plus
+
+                            a.btn.btn-primary.mr-1(ng-click="") Clean
+                            
+                            a.btn.btn-primary.mr-1(ng-click="") Save
+
                             a.btn.btn-primary(href="{$ wiz.url('ui/workspace/apps/list') $}")
                                 i.fa-solid.fa-xmark
             
@@ -104,11 +88,20 @@
                             button.btn.btn-primary.btn-circle.btn-sm(style="height: 24px; width: 24px;" ng-click="viewer.info.toggle()")
                                 i.fa-solid.fa-xmark
 
+                    .form-group.d-flex.p-3.pt-1.pb-1.bg-secondary
+                        h4 Package
+
                     .form-group.row
                         .col-3
                             label.form-label.col-form-label App ID
                         .col
                             input.form-control.form-control-sm.form-control-round(type="text" ng-model="app.data.package.id" placeholder="page.auth.login")
+
+                    .form-group.row
+                        .col-3
+                            label.form-label.col-form-label Title
+                        .col
+                            input.form-control.form-control-sm.form-control-round(type="text" ng-model="app.data.package.title" placeholder="App Title")
 
                     .form-group.row
                         .col-3
@@ -136,21 +129,33 @@
 
                     .form-group.row
                         .col-3
-                            label.form-label.col-form-label Builder
-                        .col.col-form-select
-                            .form-selectgroup
-                                label.form-selectgroup-item(ng-repeat="item in data.builder")
-                                    input.form-selectgroup-input(type="radio" name="scripttype" value="{{item.id}}" ng-model="app.data.package.script_type")
-                                    span.form-selectgroup-label {{item.title}}
-
-                    .form-group.row
-                        .col-3
                             label.form-label.col-form-label Theme
                         .col.col-form-select
                             .form-selectgroup
                                 label.form-selectgroup-item.d-block(ng-repeat="item in data.theme")
                                     input.form-selectgroup-input(type="radio" name="theme" value="{{item}}" ng-model="app.data.package.theme")
                                     span.form-selectgroup-label.d-block {{item ? item : 'Not use'}}
+
+                    .form-group.d-flex.p-3.pt-1.pb-1.bg-secondary
+                        h4 Compiler
+                    
+                    .form-group.row
+                        .col-3
+                            label.form-label.col-form-label HTML
+                        .col.col-form-select
+                            .form-selectgroup
+                                label.form-selectgroup-item(ng-repeat="item in data.lang.html")
+                                    input.form-selectgroup-input(type="radio" name="compiler_html" value="{{item}}" ng-model="app.data.package.properties.html")
+                                    span.form-selectgroup-label {{ item }}
+                    
+                    .form-group.row
+                        .col-3
+                            label.form-label.col-form-label CSS
+                        .col.col-form-select
+                            .form-selectgroup
+                                label.form-selectgroup-item(ng-repeat="item in data.lang.css")
+                                    input.form-selectgroup-input(type="radio" name="compiler_css" value="{{item}}" ng-model="app.data.package.properties.css")
+                                    span.form-selectgroup-label {{ item }}
 
                 .editor-area.bg-primary-lt
                     mixin codearea(tab)
@@ -162,9 +167,12 @@
                                 a.btn.btn-square.btn-sm.p-2(ng-click="app.editor.tab('{$tab$}', 'html')" class="{{app.editor.tabs.{$tab$}.target == 'html' ? 'text-dark' : 'bg-primary'}}") HTML
                                 a.btn.btn-square.btn-sm.p-2(ng-click="app.editor.tab('{$tab$}', 'js')" class="{{app.editor.tabs.{$tab$}.target == 'js' ? 'text-dark' : 'bg-primary'}}") JS
                                 a.btn.btn-square.btn-sm.p-2(ng-click="app.editor.tab('{$tab$}', 'css')" class="{{app.editor.tabs.{$tab$}.target == 'css' ? 'text-dark' : 'bg-primary'}}") CSS
+                                a.btn.btn-square.btn-sm.p-2(ng-click="app.editor.tab('{$tab$}', 'dic')" class="{{app.editor.tabs.{$tab$}.target == 'dic' ? 'text-dark' : 'bg-primary'}}") Dic
+                                a.btn.btn-square.btn-sm.p-2(ng-click="app.editor.tab('{$tab$}', 'file')" class="{{app.editor.tabs.{$tab$}.target == 'file' ? 'text-dark' : 'bg-primary'}}") File
                                 a.btn.btn-square.btn-sm.p-2(ng-click="app.editor.tab('{$tab$}', 'preview')" class="{{app.editor.tabs.{$tab$}.target == 'preview' ? 'text-dark' : 'bg-primary'}}") Preview
 
-                            div(ng-if="!['preview', 'info'].includes(app.editor.tabs.{$tab$}.target) && app.editor.tabs.{$tab$}.status" ng-model="app.data[app.editor.tabs.{$tab$}.target]" ui-monaco-opts="app.editor.tabs.{$tab$}.monaco" ui-monaco)
+                            div(ng-if="!['preview', 'dic', 'file'].includes(app.editor.tabs.{$tab$}.target) && app.editor.tabs.{$tab$}.status" ng-model="app.data[app.editor.tabs.{$tab$}.target]" ui-monaco-opts="app.editor.tabs.{$tab$}.monaco" ui-monaco)
+                            
                             .code-preview(ng-if="app.editor.tabs.{$tab$}.target == 'preview'" style="max-width: none; width: 100%; height: calc(100% - 33px);")
                                 iframe.preview(style="height: 100%;" ng-show="app.preview.status")
 
@@ -194,5 +202,45 @@
                                         a.btn.btn-square.btn-primary.btn-sm.p-2.ml-auto(ng-click="socket.clear()") CLEAR
                                         a.btn.btn-square.btn-primary.btn-sm.p-2(ng-click="layout.change(layout.active_layout > 3 ? layout.active_layout - 3 : layout.active_layout)")
                                             i.fa-solid.fa-xmark
-                                    div(style="height: calc(100% - 36px);")
+                                    div(style="height: calc(100% - 33px);")
                                         .dizest-debug-messages(style="overflow: auto; max-width: none; width: 100%; height: 100%; background: #000; color: #fff; padding: 8px; line-height: 1;" ng-bind-html="trustAsHtml(socket.log)")
+
+                .menu-area
+                    .d-block
+                        .btn.btn-sm(ng-class="layout.active_layout % 3 == 1 ? 'btn-primary' : 'btn-white'" ng-click="layout.change(layout.active_layout > 3 ? 4 : 1)")
+                            .layout-selector(ng-class="layout.active_layout % 3 == 1 ? 'active' : ''")
+                                .layout-icon
+                                    .layout-row
+                                        .layout-column
+                    .d-block
+                        .btn.btn-sm(ng-class="layout.active_layout % 3 == 2 ? 'btn-primary' : 'btn-white'" ng-click="layout.change(layout.active_layout > 3 ? 5 : 2)")
+                            .layout-selector(ng-class="layout.active_layout % 3 == 2 ? 'active' : ''")
+                                .layout-icon
+                                    .layout-row
+                                        .layout-column
+                                        .layout-column
+                    .d-block
+                        .btn.btn-sm(ng-class="layout.active_layout % 3 == 0 ? 'btn-primary' : 'btn-white'" ng-click="layout.change(layout.active_layout > 3 ? 6 : 3)")
+                            .layout-selector(ng-class="layout.active_layout % 3 == 0 ? 'active' : ''")
+                                .layout-icon
+                                    .layout-row
+                                        .layout-column
+                                        .layout-column
+                                        .layout-column
+                    .mt-auto
+
+                    .d-block
+                        .btn(ng-click="layout.change(layout.active_layout <= 3 ? layout.active_layout + 3 : layout.active_layout - 3)" class="{{layout.active_layout <= 3 ? 'btn-white' : 'btn-primary'}}")
+                            i.fa-solid.fa-terminal
+                    
+                    .d-block
+                        .btn(ng-click="viewer.info.toggle()" class="{{!viewer.info.show ? 'btn-white' : 'btn-primary'}}")
+                            i.fa-solid.fa-info
+
+                    .d-block
+                        .btn(ng-click="workspace.toggle()" class="{{workspace.mode == 'focus-mode' ? 'btn-white' : 'btn-primary'}}")
+                            i.fa-solid.fa-list-ul
+
+                    .d-block
+                        .btn.btn-white(ng-click="")
+                            i.fa-solid.fa-keyboard

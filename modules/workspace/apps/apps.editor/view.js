@@ -43,6 +43,17 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
         return Math.floor(diff) + " minutes ago";
     }
 
+    $scope.workspace = {};
+    $scope.workspace.mode = 'list-mode';
+    $scope.workspace.toggle = async () => {
+        if ($scope.workspace.mode == 'focus-mode') {
+            $scope.workspace.mode = 'list-mode';
+        } else {
+            $scope.workspace.mode = 'focus-mode';
+        }
+        await $timeout();
+    }
+
     $scope.data = {};
 
     try {
@@ -50,6 +61,10 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
     } catch (e) {
         $scope.data.app_id = '';
     }
+
+    $scope.data.branch = wiz.data.branch;
+    $scope.data.branches = wiz.data.branches;
+    $scope.data.is_dev = wiz.data.is_dev;
 
     $scope.data.category = wiz.data.category;
     $scope.data.theme = wiz.data.theme;
@@ -59,6 +74,10 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
         { 'id': 'text/babel', 'title': 'Babel' },
         { 'id': 'text/typescript', 'title': 'Typescript' }
     ]
+
+    $scope.data.lang = {};
+    $scope.data.lang.html = ['pug', 'html'];
+    $scope.data.lang.css = ['css', 'scss', 'less'];
 
     $scope.facet = {};
     $scope.search = {};
@@ -157,35 +176,43 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
             $scope.layout.viewstate.horizonal.lastComponentSize = 0;
         }
 
-        if (layout == 1) {
-            _horizonal_top();
-            $scope.layout.viewstate.vertical_1_1.lastComponentSize = 0;
-        } else if (layout == 2) {
-            _horizonal_top();
-            $scope.layout.viewstate.vertical_1_1.lastComponentSize = Math.round(_width / 2);
-            $scope.layout.viewstate.vertical_1_2.lastComponentSize = 0;
-        } else if (layout == 3) {
-            _horizonal_top();
-            $scope.layout.viewstate.vertical_1_1.lastComponentSize = Math.round(_width / 3 * 2);
-            $scope.layout.viewstate.vertical_1_2.lastComponentSize = Math.round(_width / 3);
-        } else if (layout == 4) {
-            _horizonal_split();
-            $scope.layout.viewstate.vertical_1_1.firstComponentSize = _width;
-            $scope.layout.viewstate.vertical_1_1.lastComponentSize = 0;
-        } else if (layout == 5) {
-            _horizonal_split();
-            $scope.layout.viewstate.vertical_1_1.firstComponentSize = Math.round(_width / 2);
-            $scope.layout.viewstate.vertical_1_1.lastComponentSize = Math.round(_width / 2);
-            $scope.layout.viewstate.vertical_1_2.firstComponentSize = Math.round(_width / 2);
-            $scope.layout.viewstate.vertical_1_2.lastComponentSize = 0;
-        } else if (layout == 6) {
-            _horizonal_split();
-            $scope.layout.viewstate.vertical_1_1.firstComponentSize = Math.round(_width / 3);
-            $scope.layout.viewstate.vertical_1_1.lastComponentSize = Math.round(_width / 3 * 2);
-            $scope.layout.viewstate.vertical_1_2.firstComponentSize = Math.round(_width / 3);
-            $scope.layout.viewstate.vertical_1_2.lastComponentSize = Math.round(_width / 3);
+        let layout_builder = async () => {
+            $scope.layout.viewstate = {};
+            $scope.layout.viewstate.horizonal = {};
+            $scope.layout.viewstate.vertical_1_1 = {};
+            $scope.layout.viewstate.vertical_1_2 = {};
+
+            if (layout == 1) {
+                _horizonal_top();
+                $scope.layout.viewstate.vertical_1_1.lastComponentSize = 0;
+            } else if (layout == 2) {
+                _horizonal_top();
+                $scope.layout.viewstate.vertical_1_1.lastComponentSize = Math.round(_width / 2);
+                $scope.layout.viewstate.vertical_1_2.lastComponentSize = 0;
+            } else if (layout == 3) {
+                _horizonal_top();
+                $scope.layout.viewstate.vertical_1_1.lastComponentSize = Math.round(_width / 3 * 2);
+                $scope.layout.viewstate.vertical_1_2.lastComponentSize = Math.round(_width / 3);
+            } else if (layout == 4) {
+                _horizonal_split();
+                $scope.layout.viewstate.vertical_1_1.firstComponentSize = _width;
+                $scope.layout.viewstate.vertical_1_1.lastComponentSize = 0;
+            } else if (layout == 5) {
+                _horizonal_split();
+                $scope.layout.viewstate.vertical_1_1.firstComponentSize = Math.round(_width / 2);
+                $scope.layout.viewstate.vertical_1_1.lastComponentSize = Math.round(_width / 2);
+                $scope.layout.viewstate.vertical_1_2.firstComponentSize = Math.round(_width / 2);
+                $scope.layout.viewstate.vertical_1_2.lastComponentSize = 0;
+            } else if (layout == 6) {
+                _horizonal_split();
+                $scope.layout.viewstate.vertical_1_1.firstComponentSize = Math.round(_width / 3);
+                $scope.layout.viewstate.vertical_1_1.lastComponentSize = Math.round(_width / 3 * 2);
+                $scope.layout.viewstate.vertical_1_2.firstComponentSize = Math.round(_width / 3);
+                $scope.layout.viewstate.vertical_1_2.lastComponentSize = Math.round(_width / 3);
+            }
         }
 
+        await layout_builder();
         await $timeout();
     }
 
@@ -229,7 +256,6 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
         let res = await wiz.API.async("load", { id: app_id });
         if (res.code == 200) {
             $scope.app.data = res.data;
-            console.log($scope.app.data);
             await $scope.app.init.editor();
         }
     }
@@ -264,8 +290,8 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
         await $timeout();
 
         $scope.app.editor.tabs[tab].target = target;
-        if (!['preview'].includes(target)) {
-            let map = { controller: 'python', api: 'python', socketio: 'python', css: 'scss', html: 'pug', js: 'javascript' };
+        if (!['preview', 'dic', 'file'].includes(target)) {
+            let map = { controller: 'python', api: 'python', socketio: 'python', css: $scope.app.data.package.properties.css, html: $scope.app.data.package.properties.html, js: 'javascript' };
             $scope.app.editor.tabs[tab].monaco = monaco_option(map[target]);
         }
 
@@ -275,6 +301,14 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
         if (target == "preview") {
             await $scope.app.preview.load();
         }
+
+        if (target == "dic") {
+            console.log($scope.app.data.dic);
+        }
+
+        if (target == "file") {
+        }
+
     }
 
     $scope.app.editor.tabs = {}

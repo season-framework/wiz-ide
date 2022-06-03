@@ -3,6 +3,9 @@ import season
 
 kwargs['category'] = wiz.server.config.wiz.category
 kwargs['theme'] = [""] + wiz.src.theme.list()
+kwargs['is_dev'] = wiz.is_dev()
+kwargs['branch'] = wiz.branch()
+kwargs['branches'] = wiz.branches()
 
 branchfs = wiz.branchfs()
 
