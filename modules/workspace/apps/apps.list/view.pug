@@ -51,8 +51,8 @@
                         tbody
                             tr(ng-repeat="item in data" ng-if="!item.hide")
                                 td.w-1.text-left 
-                                    a(href="{$ wiz.url('ui/workspace/apps/editor') + '#' $}{{item.package.id}}") {{item.package.id}}
+                                    a(href="{$ wiz.url('ui/workspace/ide') + '#app/' $}{{item.package.id}}") {{item.package.id}}
                                 td.text-left
-                                    a(href="{$ wiz.url('ui/workspace/apps/editor') + '#' $}{{item.package.id}}") {{item.package.title}}
+                                    a(href="{$ wiz.url('ui/workspace/ide') + '#app/' $}{{item.package.id}}") {{item.package.title}}
                                 td.w-1.text-left {{item.package.category}}
                                 td.w-1 {{datedisplay(item.package.updated)}}

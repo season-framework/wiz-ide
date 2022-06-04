@@ -34,6 +34,8 @@
 
                 tbody
                     tr(ng-repeat="item in data" ng-if="!item.hide")
-                        td.w-1.text-left {{item.package.route}}
-                        td.text-left {{item.package.title}}
+                        td.w-1.text-left 
+                            a(href="{$ wiz.url('ui/workspace/ide') + '#route/' $}{{item.package.id}}") {{item.package.route}}
+                        td.text-left 
+                            a(href="{$ wiz.url('ui/workspace/ide') + '#route/' $}{{item.package.id}}") {{item.package.title}}
                         td.w-1 {{datedisplay(item.package.updated)}}
