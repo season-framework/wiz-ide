@@ -81,6 +81,7 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
 
     // event binding
     $scope.event = {};
+
     $scope.event.get = {};
     $scope.event.get.app = async (app_id, refresh) => {
         if (app_id != 'new') {
@@ -112,10 +113,11 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
         }
         return data;
     }
+
     $scope.event.get.route = async (app_id, refresh) => {
         if (app_id != 'new') {
             if (!refresh && $scope.cache.routes[app_id]) return $scope.cache.routes[app_id];
-            let res = await wiz.API.async("load", { mode: 'app', id: app_id });
+            let res = await wiz.API.async("load", { mode: 'route', id: app_id });
             if (res.code == 200) {
                 $scope.cache.routes[app_id] = res.data;
                 return $scope.cache.routes[app_id];
@@ -124,26 +126,17 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
         let data = {
             package: {
                 id: '',
-                category: $scope.data.category[0].id,
-                script_type: 'text/javascript',
-                theme: '',
-                controller: '',
-                properties: {
-                    html: 'pug', css: 'scss', js: 'javascript'
-                }
+                title: '',
+                route: '',
+                controller: ''
             },
-            api: '',
             controller: '',
-            socketio: '',
-            dic: {},
-            html: '',
-            css: '',
-            js: ''
+            dic: {}
         }
         return data;
     }
 
-
+    // load list
     $scope.event.load = async (mode) => {
         if (!mode) mode = $scope.viewer.list.mode;
         let res = await wiz.API.async("list", { mode: mode });
@@ -159,18 +152,19 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
                 if (!$scope.data.apps[category]) $scope.data.apps[category] = [];
                 $scope.data.apps[category].push(data[i]);
             }
-        }
-
-        if (mode == 'route') {
+        } else if (mode == 'route') {
             $scope.data.routes = [];
             for (let i = 0; i < data.length; i++) {
                 $scope.data.routes.push(data[i]);
             }
         }
 
+        $scope.viewer.list.view = 'list';
+        $scope.viewer.list.mode = mode;
         await $timeout();
     }
 
+    // delete
     $scope.event.delete = async () => {
         let mode = $scope.viewer.tabs.active_tab.mode;
         let data = angular.copy($scope.viewer.tabs.active_tab.data);
@@ -178,6 +172,8 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
         let message = "Are you sure delete?"
         if (mode == 'app') {
             message = "Are you sure delete `" + data.package.title + "` app?";
+        } else if (mode == 'route') {
+            message = "Are you sure delete `" + data.package.title + "` router?";
         }
 
         let res = await wiz.connect("modal.message")
@@ -191,32 +187,44 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
             .event("modal-show");
         if (!res) return;
 
+        let removes = [];
         if (mode == 'app') {
             res = await wiz.API.async("app_delete", { app_id: data.package.id });
-
-            let removes = [];
             for (let i = 0; i < $scope.viewer.tabs.data.length; i++) {
+                if ($scope.viewer.tabs.data[i].mode != 'app') continue;
                 if ($scope.viewer.tabs.data[i].org_app_id == data.package.id) {
                     removes.push($scope.viewer.tabs.data[i]);
                 }
             }
-            for (let i = 0; i < removes.length; i++) {
-                $scope.viewer.tabs.data.remove(removes[i]);
+        } else if (mode == 'route') {
+            res = await wiz.API.async("route_delete", { app_id: data.package.id });
+            for (let i = 0; i < $scope.viewer.tabs.data.length; i++) {
+                if ($scope.viewer.tabs.data[i].mode != 'route') continue;
+                if ($scope.viewer.tabs.data[i].org_app_id == data.package.id) {
+                    removes.push($scope.viewer.tabs.data[i]);
+                }
             }
-
-            if ($scope.viewer.tabs.data.length > 0) {
-                await $scope.viewer.tabs.data[0].activate();
-            } else {
-                $scope.viewer.tabs.active_tab = null;
-            }
-
-            await $scope.event.load('app');
         }
+
+        // remove deleted tabs
+        for (let i = 0; i < removes.length; i++) {
+            $scope.viewer.tabs.data.remove(removes[i]);
+        }
+
+        // activate remained tab
+        if ($scope.viewer.tabs.data.length > 0) {
+            await $scope.viewer.tabs.data[0].activate();
+        } else {
+            $scope.viewer.tabs.active_tab = null;
+        }
+
+        // reload list
+        await $scope.event.load(mode);
 
         await $timeout();
     }
 
-
+    // save
     $scope.event.save = async () => {
         let mode = $scope.viewer.tabs.active_tab.mode;
         let data = angular.copy($scope.viewer.tabs.active_tab.data);
@@ -240,7 +248,9 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
                     if (res.code != 200)
                         return alert(res.data);
 
+                    // change renamed at opened tabs
                     for (let i = 0; i < $scope.viewer.tabs.data.length; i++) {
+                        if ($scope.viewer.tabs.data[i].mode != 'app') continue;
                         if ($scope.viewer.tabs.data[i].org_app_id == org_app_id) {
                             $scope.viewer.tabs.data[i].org_app_id = data.package.id;
                             $scope.viewer.tabs.data[i].app_id = data.package.id;
@@ -252,32 +262,87 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
                     return alert(res.data);
                 await $scope.event.load('app');
             }
+        } else if (mode == 'route') {
+            let is_new = $scope.viewer.tabs.active_tab.new;
+            let org_app_id = $scope.viewer.tabs.active_tab.org_app_id;
+
+            if (is_new) {
+                let res = await wiz.API.async("route_create", { app_id: data.package.id, data: JSON.stringify(data) });
+                if (res.code != 200)
+                    return alert(res.data);
+                $scope.viewer.tabs.active_tab.org_app_id = data.package.id;
+                $scope.viewer.tabs.active_tab.app_id = data.package.id;
+                delete $scope.viewer.tabs.active_tab.new;
+                $scope.cache.apps[data.package.id] = $scope.viewer.tabs.active_tab.data;
+                await $scope.event.load('route');
+            } else {
+                if (data.package.id != org_app_id) {
+                    let res = await wiz.API.async("route_rename", { app_id: org_app_id, rename: data.package.id });
+                    if (res.code != 200)
+                        return alert(res.data);
+
+                    // change renamed at opened tabs
+                    for (let i = 0; i < $scope.viewer.tabs.data.length; i++) {
+                        if ($scope.viewer.tabs.data[i].mode != 'route') continue;
+                        if ($scope.viewer.tabs.data[i].org_app_id == org_app_id) {
+                            $scope.viewer.tabs.data[i].org_app_id = data.package.id;
+                            $scope.viewer.tabs.data[i].app_id = data.package.id;
+                        }
+                    }
+                }
+                let res = await wiz.API.async("route_update", { app_id: data.package.id, data: JSON.stringify(data) });
+                if (res.code != 200)
+                    return alert(res.data);
+                await $scope.event.load('route');
+            }
         }
 
+        toastr.success('saved');
         await $timeout();
     }
 
     $scope.event.search = async (val) => {
         val = val.toLowerCase();
-        let searchindex = ['title', 'id', 'route'];
-        for (let category in $scope.data.apps) {
-            for (let i = 0; i < $scope.data.apps[category].length; i++) {
-                $scope.data.apps[category][i].hide = true;
+        if ($scope.viewer.list.mode == 'app') {
+            let searchindex = ['title', 'id'];
+            for (let category in $scope.data.apps) {
+                for (let i = 0; i < $scope.data.apps[category].length; i++) {
+                    $scope.data.apps[category][i].hide = true;
+                    for (let j = 0; j < searchindex.length; j++) {
+                        try {
+                            let key = searchindex[j];
+                            let keyv = $scope.data.apps[category][i].package[key].toLowerCase();
+                            if (keyv.includes(val)) {
+                                $scope.data.apps[category][i].hide = false;
+                                break;
+                            }
+                        } catch (e) {
+                        }
+                    }
+                    if (val.length == 0)
+                        $scope.data.apps[category][i].hide = false;
+                }
+            }
+        } else if ($scope.viewer.list.mode == 'route') {
+            let searchindex = ['title', 'id', 'route'];
+            for (let i = 0; i < $scope.data.routes.length; i++) {
+                $scope.data.routes[i].hide = true;
                 for (let j = 0; j < searchindex.length; j++) {
                     try {
                         let key = searchindex[j];
-                        let keyv = $scope.data.apps[category][i].package[key].toLowerCase();
+                        let keyv = $scope.data.routes[i].package[key].toLowerCase();
                         if (keyv.includes(val)) {
-                            $scope.data.apps[category][i].hide = false;
+                            $scope.data.routes[i].hide = false;
                             break;
                         }
                     } catch (e) {
                     }
                 }
                 if (val.length == 0)
-                    $scope.data.apps[category][i].hide = false;
+                    $scope.data.routes[i].hide = false;
             }
         }
+
         $timeout();
     }
 
@@ -347,6 +412,14 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
             }
             await $timeout();
         }
+
+        obj.view = 'list';
+        obj.change = async () => {
+            if (obj.view == 'list') obj.view = 'select';
+            else obj.view = 'list';
+            await $timeout();
+        }
+
         return obj;
     })();
 
@@ -425,6 +498,52 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
         return obj;
     }
 
+    tab_generator.route = async (app_id, target) => {
+        let obj = {};
+        obj.id = 'editor-' + new Date().getTime();
+        obj.mode = 'route';
+        obj.data = await $scope.event.get.route(app_id);
+        obj.app_id = obj.data.package.id;
+        obj.org_app_id = obj.data.package.id + '';
+
+        if (obj.app_id === '') {
+            obj.new = true;
+        }
+
+        obj.activate = async () => {
+            while (!obj.editor) await $timeout(100);
+            obj.editor.focus();
+            $scope.viewer.tabs.active_tab = obj;
+            $scope.data.hash_id = 'route/' + obj.app_id;
+            location.href = "#" + $scope.data.hash_id;
+            await $timeout();
+        }
+
+        obj.code = {};
+        obj.code.list = ['controller', 'dic', 'preview'];
+        obj.code.select = async (target) => {
+            obj.show = false;
+            await $timeout();
+            obj.code.target = target;
+
+            if (target == 'dic') {
+
+            } else if (target == 'preview') {
+
+            } else {
+                let map = { controller: 'python' };
+                obj.show = true;
+                obj.monaco = monaco_option(map[target], obj);
+            }
+
+            await $timeout();
+        }
+
+        if (!target) target = 'controller';
+        obj.code.select(target);
+        return obj;
+    }
+
     $scope.viewer.tabs = await (async () => {
         let obj = {};
 
@@ -449,6 +568,12 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
                     tab = await tab_generator.app(app_id, 'api');
                     if (tab) obj.data.push(tab);
                 }
+            } else if (mode == 'route') {
+                let tab = await tab_generator.route(app_id, 'controller');
+                if (tab) {
+                    obj.data.push(tab);
+                    await tab.activate();
+                }
             }
         }
 
@@ -456,6 +581,8 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
             let tab = null;
             if (mode == 'app') {
                 tab = await tab_generator.app(target, 'controller');
+            } else if (mode == 'route') {
+                tab = await tab_generator.route(target, 'controller');
             }
 
             if (tab) {
@@ -485,15 +612,24 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
                     }
                 }
                 delete $scope.cache.apps[deleted];
+            } else if (tab.mode == 'route') {
+                let deleted = tab.app_id;
+                for (let i = 0; i < obj.data.length; i++) {
+                    if (obj.data[i].mode != 'route') continue;
+                    if (obj.data[i].app_id == deleted) {
+                        deleted = null;
+                    }
+                }
+                delete $scope.cache.routes[deleted];
+            }
 
-                if (obj.active_tab.id == tab.id) {
-                    obj.active_tab = null;
-                    if (obj.data.length > 0) {
-                        if (obj.data[tabidx]) {
-                            await obj.data[tabidx].activate();
-                        } else {
-                            await obj.data[obj.data.length - 1].activate();
-                        }
+            if (obj.active_tab.id == tab.id) {
+                obj.active_tab = null;
+                if (obj.data.length > 0) {
+                    if (obj.data[tabidx]) {
+                        await obj.data[tabidx].activate();
+                    } else {
+                        await obj.data[obj.data.length - 1].activate();
                     }
                 }
             }

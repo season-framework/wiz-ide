@@ -9,48 +9,107 @@
                     .text-center
                         img.m-0(src="{$ wiz.url.resource('img/logo-white.png') $}" style='height:36px;')
 
-            .footer-menu
-                .search
+            .footer-menu.d-flex
+                .search(style="flex: auto;")
                     input.form-control.form-control-sm.form-control-round(type="text" placeholder="Search..." ng-model="data.search.text" ng-change="event.search(data.search.text)")
+                .btn.btn-sm.btn-primary.btn-circle.ml-1(style="width: 48px;" ng-click="viewer.list.change()")
+                    i.fa-solid.fa-folder-tree(ng-if="viewer.list.view == 'list'")
+                    i.fa-solid.fa-xmark(ng-if="viewer.list.view != 'list'")
 
             #navbar-menu.navbar-collapse.collapse
-                ul.navbar-nav(ng-repeat="category in data.category" ng-if="data.apps[category.id].length > 0" ng-if="viewer.list.mode == 'app'")
-                    li.nav-item.nav-item-header 
-                        .text-left
-                            span {{category.title}}
-                            small.ml-1.text-muted ({{data.apps[category.id].length}})
+                .list-container(ng-if="viewer.list.view == 'select'")
+                    ul.navbar-nav
+                        li.nav-item
+                            .row.m-0.p-0
+                                .col.m-0.p-0
+                                    a.nav-link(ng-click="event.load('route')")
+                                        span.mr-2(style="width: 20px; text-align: center;")
+                                            i.fa-solid.fa-link
+                                        .d-block
+                                            .nav-link-title Routes
+                        li.nav-item
+                            .row.m-0.p-0
+                                .col.m-0.p-0
+                                    a.nav-link(ng-click="event.load('app')")
+                                        span.mr-2(style="width: 20px; text-align: center;")
+                                            i.fa-solid.fa-cubes
+                                        .d-block
+                                            .nav-link-title Apps
+                        
+                        li.nav-item
+                            .row.m-0.p-0
+                                .col.m-0.p-0
+                                    a.nav-link(ng-click="event.load('controller')")
+                                        span.mr-2(style="width: 20px; text-align: center;")
+                                            i.fa-solid.fa-filter
+                                        .d-block
+                                            .nav-link-title Controller
+                        
+                        li.nav-item
+                            .row.m-0.p-0
+                                .col.m-0.p-0
+                                    a.nav-link(ng-click="event.load('model')")
+                                        span.mr-2(style="width: 20px; text-align: center;")
+                                            i.fa-solid.fa-database
+                                        .d-block
+                                            .nav-link-title Model
+
+                        li.nav-item
+                            .row.m-0.p-0
+                                .col.m-0.p-0
+                                    a.nav-link(ng-click="event.load('theme')")
+                                        span.mr-2(style="width: 20px; text-align: center;")
+                                            i.fa-solid.fa-display
+                                        .d-block
+                                            .nav-link-title Theme
+
+                        li.nav-item
+                            .row.m-0.p-0
+                                .col.m-0.p-0
+                                    a.nav-link(ng-click="event.load('resources')")
+                                        span.mr-2(style="width: 20px; text-align: center;")
+                                            i.fa-solid.fa-folder-tree
+                                        .d-block
+                                            .nav-link-title Resources
+
+                .list-container(ng-if="viewer.list.view == 'list'")
+                    ul.navbar-nav(ng-repeat="category in data.category" ng-if="data.apps[category.id].length > 0" ng-if="viewer.list.mode == 'app'")
+                        li.nav-item.nav-item-header 
+                            .text-left
+                                span {{category.title}}
+                                small.ml-1.text-muted ({{data.apps[category.id].length}})
+                        
+                        li.nav-item(ng-repeat="item in data.apps[category.id]" ng-if="!item.hide" class="{{viewer.tabs.active_tab.org_app_id == item.package.id ? 'active' : ''}}")
+                            .row.m-0.p-0
+                                .col.m-0.p-0
+                                    a.nav-link(ng-click="viewer.tabs.add('app', item.package.id)")
+                                        span.mr-2(style="width: 20px; text-align: center;")
+                                            i.fa-solid.fa-cube
+                                        .d-block
+                                            .nav-link-title {{item.package.title}}
+                                            small.text-muted {{item.package.id}}
+                                    
+                                .nav-item-status.col-auto.align-self-center.m-0.p-0.mr-2
+                                    i.fa-solid.fa-circle
                     
-                    li.nav-item(ng-repeat="item in data.apps[category.id]" ng-if="!item.hide" class="{{viewer.tabs.active_tab.org_app_id == item.package.id ? 'active' : ''}}")
-                        .row.m-0.p-0
-                            .col.m-0.p-0
-                                a.nav-link(ng-click="viewer.tabs.add('app', item.package.id)")
-                                    span.mr-2(style="width: 20px; text-align: center;")
-                                        i.fa-solid.fa-rocket
-                                    .d-block
-                                        .nav-link-title {{item.package.title}}
-                                        small.text-muted {{item.package.id}}
-                                
-                            .nav-item-status.col-auto.align-self-center.m-0.p-0.mr-2
-                                i.fa-solid.fa-circle
-                
-                ul.navbar-nav(ng-if="data.routes.length > 0" ng-if="viewer.list.mode == 'route'")
-                    li.nav-item.nav-item-header
-                        .text-left
-                            span routes
-                            small.ml-1.text-muted ({{data.routes.length}})
-                    
-                    li.nav-item(ng-repeat="item in data.routes" ng-if="!item.hide" class="{{viewer.tabs.active_tab.org_app_id == item.package.id ? 'active' : ''}}")
-                        .row.m-0.p-0
-                            .col.m-0.p-0
-                                a.nav-link(ng-click="viewer.tabs.add('route', item.package.id)")
-                                    span.mr-2(style="width: 20px; text-align: center;")
-                                        i.fa-solid.fa-rocket
-                                    .d-block
-                                        .nav-link-title {{item.package.title}}
-                                        small.text-muted {{item.package.id}}
-                                
-                            .nav-item-status.col-auto.align-self-center.m-0.p-0.mr-2
-                                i.fa-solid.fa-circle
+                    ul.navbar-nav(ng-if="data.routes.length > 0" ng-if="viewer.list.mode == 'route'")
+                        li.nav-item.nav-item-header
+                            .text-left
+                                span routes
+                                small.ml-1.text-muted ({{data.routes.length}})
+                        
+                        li.nav-item(ng-repeat="item in data.routes" ng-if="!item.hide" class="{{viewer.tabs.active_tab.org_app_id == item.package.id ? 'active' : ''}}")
+                            .row.m-0.p-0
+                                .col.m-0.p-0
+                                    a.nav-link(ng-click="viewer.tabs.add('route', item.package.id)")
+                                        span.mr-2(style="width: 20px; text-align: center;")
+                                            i.fa-solid.fa-link
+                                        .d-block
+                                            .nav-link-title {{item.package.title}}
+                                            small.text-muted {{item.package.id}}
+                                    
+                                .nav-item-status.col-auto.align-self-center.m-0.p-0.mr-2
+                                    i.fa-solid.fa-circle
 
     .content
         .workspace-area
@@ -64,10 +123,11 @@
                                 span.status-indicator-circle
 
                         .col(style="line-height: 1;")
-                            h2.page-title App Editor
+                            h2.page-title IDE
                             .text-muted
                                 ul.list-inline.list-inline-dots.mb-0
-                                    li.list-inline-item {{viewer.tabs.active_tab.mode}}
+                                    li.list-inline-item {{viewer.tabs.active_tab.mode}} 
+                                        small.pr-2.pl-2.bg-primary-lt(ng-if="viewer.tabs.active_tab.data.package.title") {{viewer.tabs.active_tab.data.package.title}}
 
                         .col-auto.actions.mr-1
                             .dropdown
@@ -89,7 +149,7 @@
                             a.btn.btn-primary.mr-1(ng-click="")
                                 i.fa-solid.fa-cloud-arrow-up
 
-                            a.btn.btn-primary.mr-1(ng-click="viewer.tabs.add('app', 'new')")
+                            a.btn.btn-primary.mr-1(ng-click="viewer.tabs.add(viewer.list.mode, 'new')")
                                 i.fa-solid.fa-plus
 
                             a.btn.btn-primary.mr-1(ng-click="") Clean
@@ -179,10 +239,57 @@
                         
                         
                         .form-group.d-flex.p-3.pt-1.pb-1.bg-secondary(ng-if="!viewer.tabs.active_tab.new")
-                            h4 Delete App
+                            h4 Delete
                         .p-3(ng-if="!viewer.tabs.active_tab.new")
-                            .btn.btn-outline-danger.btn-block(ng-click="event.delete()") Delete App
+                            .btn.btn-outline-danger.btn-block(ng-click="event.delete()") Delete
 
+                    .route-info-area(ng-if="viewer.tabs.active_tab.mode == 'route'")
+                        .form-group.d-flex.p-3.pt-2.pb-2.bg-primary-lt
+                            h3(style="max-width: 220px; overflow: hidden; text-overflow: ellipsis;") {{viewer.tabs.active_tab.new ? 'new' : viewer.tabs.active_tab.data.package.title}}
+                            .ml-auto
+                                button.btn.btn-primary.btn-circle.btn-sm(style="height: 24px; width: 24px;" ng-click="viewer.info.toggle()")
+                                    i.fa-solid.fa-xmark
+
+                        .form-group.d-flex.p-3.pt-1.pb-1.bg-secondary
+                            h4 Package
+
+                        .form-group.row
+                            .col-3
+                                label.form-label.col-form-label App ID
+                            .col
+                                input.form-control.form-control-sm.form-control-round(type="text" ng-model="viewer.tabs.active_tab.data.package.id" placeholder="auth.login")
+
+                        .form-group.row
+                            .col-3
+                                label.form-label.col-form-label Title
+                            .col
+                                input.form-control.form-control-sm.form-control-round(type="text" ng-model="viewer.tabs.active_tab.data.package.title" placeholder="App Title")
+
+                        .form-group.row
+                            .col-3
+                                label.form-label.col-form-label Route
+                            .col
+                                input.form-control.form-control-sm.form-control-round(type="text" ng-model="viewer.tabs.active_tab.data.package.route" placeholder="/auth/<action>/<path:path>")
+
+                        .form-group.row
+                            .col-3
+                                label.form-label.col-form-label View URI
+                            .col
+                                input.form-control.form-control-sm.form-control-round(type="text" ng-model="viewer.tabs.active_tab.data.package.viewuri" placeholder="/routename/path")
+                        
+                        .form-group.row
+                            .col-3
+                                label.form-label.col-form-label Controller
+                            .col.col-form-select
+                                .form-selectgroup
+                                    label.form-selectgroup-item(ng-repeat="item in data.controller")
+                                        input.form-selectgroup-input(type="radio" name="controller" value="{{item}}" ng-model="viewer.tabs.active_tab.data.package.controller")
+                                        span.form-selectgroup-label {{item ? item : 'Not use'}}
+                        
+                        .form-group.d-flex.p-3.pt-1.pb-1.bg-secondary(ng-if="!viewer.tabs.active_tab.new")
+                            h4 Delete
+                        .p-3(ng-if="!viewer.tabs.active_tab.new")
+                            .btn.btn-outline-danger.btn-block(ng-click="event.delete()") Delete
 
                 .editor-area(style="width: calc(100% - {{ viewer.info.show ? '322px' : '42px' }}) !important;")
                     .code-editor
@@ -195,7 +302,7 @@
                                         .draggable.code-title.bg-primary.d-flex
                                             .pl-2(style="max-width: 80%;")
                                                 .nowrap 
-                                                    span [apps] {{tab.data.package.title}} 
+                                                    span [app] {{tab.data.package.title}} 
                                                     small ({{tab.data.package.id}})
                                             .ml-auto
                                             a.btn.btn-square.btn-sm.btn-primary.p-2(ng-click="viewer.tabs.remove(tab)")
@@ -215,6 +322,23 @@
                                             div(ng-if="!['preview', 'dic'].includes(tab.code.target)" ng-model="tab.data[tab.code.target]" ui-monaco-opts="tab.monaco" ui-monaco)
 
                                     //- route editor
+                                    .monaco-area(ng-if="tab.mode == 'route'" style="height: {{ viewer.debug.show ? 'calc(100vh - 420px)' : '100%' }} !important;")
+                                        .draggable.code-title.bg-primary.d-flex
+                                            .pl-2(style="max-width: 80%;")
+                                                .nowrap 
+                                                    span [route] {{tab.data.package.title}} 
+                                                    small ({{tab.data.package.id}})
+                                            .ml-auto
+                                            a.btn.btn-square.btn-sm.btn-primary.p-2(ng-click="viewer.tabs.remove(tab)")
+                                                i.fa-solid.fa-xmark
+
+                                        .code-select.bg-primary.d-flex
+                                            a.btn.btn-square.btn-sm.p-2(ng-click="tab.code.select('controller')" class="{{tab.code.target == 'controller' ? 'text-dark' : 'bg-primary'}}") Controller
+                                            a.btn.btn-square.btn-sm.p-2(ng-click="tab.code.select('dic')" class="{{tab.code.target == 'dic' ? 'text-dark' : 'bg-primary'}}") Dic
+                                            a.btn.btn-square.btn-sm.p-2(ng-click="tab.code.select('preview')" class="{{tab.code.target == 'preview' ? 'text-dark' : 'bg-primary'}}") Preview
+
+                                        .monaco-editor-container(ng-if="tab.show")
+                                            div(ng-if="!['preview', 'dic'].includes(tab.code.target)" ng-model="tab.data[tab.code.target]" ui-monaco-opts="tab.monaco" ui-monaco)
 
                                     //- file editor
                                        
@@ -229,7 +353,7 @@
 
                 .menu-area
                     .d-block
-                        .btn(ng-click="viewer.apps.toggle()" class="{{viewer.apps.show ? 'btn-primary' : 'btn-white'}}")
+                        .btn(ng-click="viewer.list.toggle()" class="{{viewer.list.show ? 'btn-primary' : 'btn-white'}}")
                             i.fa-solid.fa-list-ul
 
                     .d-block
