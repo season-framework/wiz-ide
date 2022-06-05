@@ -1,16 +1,41 @@
-import os
-import json
 import season
+import json
+import os
+import zipfile
+import tempfile
+import time
+import datetime
+import shutil
 
 def list():
     mode = wiz.request.query("mode", 'app')
     if mode == 'app':
-        apps = wiz.src.app.list()
+        res = wiz.src.app.list()
     elif mode == 'route':
-        apps = wiz.src.route.list()
+        res = wiz.src.route.list()
     else:
-        apps = []
-    wiz.response.status(200, apps)
+        path = wiz.request.query("path", "")
+        while len(path) > 0 and path[0] == "/":
+            path = path[1:]
+        if mode in ['controller', 'model']:
+            mode = os.path.join('interfaces', mode)
+
+        basepath = os.path.join(season.path.project, "branch", wiz.branch(), mode)
+        fs = season.util.os.FileSystem(basepath)
+        res = fs.list(path)
+        for i in range(len(res)):
+            obj = dict()
+            obj['name'] = res[i]
+            obj['parent'] = path
+            obj['path'] = os.path.join(path, res[i])
+            obj['type'] = 'folder'
+            filepath = fs.abspath(os.path.join(path, res[i]))
+            if fs.isfile(os.path.join(path, res[i])):
+                obj['type'] = 'file'
+                obj['size'] = os.path.getsize(filepath)
+            obj['ctime'] = os.path.getctime(filepath)
+            res[i] = obj
+    wiz.response.status(200, res)
 
 def load():
     try:
@@ -18,20 +43,37 @@ def load():
         if mode == 'app':
             app_id = wiz.request.query("id", True)
             app = wiz.src.app(app_id)
-            app = app.data()
+            res = app.data()
         elif mode == 'route':
             app_id = wiz.request.query("id", True)
             app = wiz.src.route(app_id)
-            app = app.data()
+            res = app.data()
         else:
-            app = None
-    except:
-        app = None
+            path = wiz.request.query("path", True)
+            while len(path) > 0 and path[0] == "/":
+                path = path[1:]
+            if mode in ['controller', 'model']:
+                mode = os.path.join('interfaces', mode)
+            basepath = os.path.join(season.path.project, "branch", wiz.branch(), mode)
+            fs = season.util.os.FileSystem(basepath)
 
-    if app is None:
+            res = None
+            extmap = wiz.server.config.wiz.file_support
+            ext =  os.path.splitext(path)[1].lower()
+            if ext in extmap:
+                exttype = extmap[ext]
+                if exttype == 'image':
+                    res = {"type": "image", "data": path}
+                if exttype.split("/")[0] == 'code':
+                    codelang = exttype.split("/")[1]
+                    res = {"type": "code", "lang": codelang, "data": fs.read(path)}
+    except:
+        res = None
+
+    if res is None:
         wiz.response.status(404)
 
-    wiz.response.status(200, app)
+    wiz.response.status(200, res)
 
 def app_create():
     app_id = wiz.request.query("app_id", True)
@@ -52,6 +94,7 @@ def app_create():
     app = wiz.src.app(app_id)
     try:
         app.update(data)
+        app.manager.clean()
     except Exception as e:
         wiz.response.status(400, str(e))
     wiz.response.status(200)
@@ -87,6 +130,7 @@ def app_update():
     app = wiz.src.app(app_id)
     try:
         app.update(data)
+        app.manager.clean()
     except Exception as e:
         wiz.response.status(400, str(e))
     wiz.response.status(200)
@@ -119,6 +163,7 @@ def route_create():
     app = wiz.src.route(app_id)
     try:
         app.update(data)
+        app.manager.clean()
     except Exception as e:
         wiz.response.status(400, str(e))
     wiz.response.status(200)
@@ -154,6 +199,7 @@ def route_update():
     app = wiz.src.route(app_id)
     try:
         app.update(data)
+        app.manager.clean()
     except Exception as e:
         wiz.response.status(400, str(e))
     wiz.response.status(200)
@@ -165,3 +211,107 @@ def route_delete():
     if len(app_id) > 3 and fs.exists(app_id):
         fs.delete(app_id)
     wiz.response.status(200)
+
+def file_create():
+    mode = wiz.request.query("mode", True)
+    path = wiz.request.query("path", True)
+    name = wiz.request.query("name", True)
+    ftype = wiz.request.query("type", True)
+    data = wiz.request.query("data", "")
+
+    if len(name) == 0:
+        wiz.response.status(404, 'input file name')
+    
+    while len(path) > 0 and path[0] == "/":
+        path = path[1:]
+    if mode in ['controller', 'model']:
+        mode = os.path.join('interfaces', mode)
+
+    basepath = os.path.join(wiz.branchpath(), mode, path)
+    fs = season.util.os.FileSystem(basepath)
+
+    if fs.exists(name):
+        wiz.response.status(404, 'Already exists filename')
+
+    if ftype == 'folder':
+        fs.makedirs(name)
+    else:
+        fs.write(name, data)
+
+    wiz.response.status(200)
+
+def file_update():
+    mode = wiz.request.query("mode", True)
+    path = wiz.request.query("path", True)
+    name = wiz.request.query("name", True)
+    ftype = wiz.request.query("type", True)
+    data = wiz.request.query("data", "")
+
+    while len(path) > 0 and path[0] == "/":
+        path = path[1:]
+    if mode in ['controller', 'model']:
+        mode = os.path.join('interfaces', mode)
+
+    basepath = os.path.join(season.path.project, "branch", wiz.branch(), mode)
+
+    basename = os.path.basename(path)
+    dirname = os.path.dirname(path)
+
+    basepath = os.path.join(wiz.branchpath(), mode, dirname)
+    fs = season.util.os.FileSystem(basepath)
+
+    if basename != name:
+        if fs.exists(basename):
+            fs.rename(basename, name)
+        else:
+            wiz.response.status(404)
+
+    if ftype == 'code':
+        fs.write(name, data)
+    
+    wiz.response.status(200)
+
+def file_delete():
+    mode = wiz.request.query("mode", True)
+    if mode in ['controller', 'model']: mode = os.path.join('interfaces', mode)
+    basepath = os.path.join(season.path.project, "branch", wiz.branch(), mode)
+    fs = season.util.os.FileSystem(basepath)
+    path = wiz.request.query("path", True)
+    while len(path) > 0 and path[0] == "/":
+        path = path[1:]
+    if len(path) > 0:
+        if fs.exists(path):
+            fs.remove(path)
+    wiz.response.status(200)
+
+def download():
+    mode = wiz.request.query("mode", True)
+    if mode in ['controller', 'model']: mode = os.path.join('interfaces', mode)
+    basepath = os.path.join(season.path.project, "branch", wiz.branch(), mode)
+    fs = season.util.os.FileSystem(basepath)
+
+    path = wiz.request.query("path", True)
+    while len(path) > 0 and path[0] == "/":
+        path = path[1:]
+    
+    if fs.isdir(path):
+        path = fs.abspath(path)
+        filename = os.path.splitext(os.path.basename(path))[0] + ".zip"
+        zippath = os.path.join(tempfile.gettempdir(), 'dizest', datetime.datetime.now().strftime("%Y%m%d"), str(int(time.time())), filename)
+        if len(zippath) < 10: return
+        try:
+            shutil.remove(zippath)
+        except:
+            pass
+        os.makedirs(os.path.dirname(zippath))
+        zipdata = zipfile.ZipFile(zippath, 'w')
+        for folder, subfolders, files in os.walk(path):
+            for file in files:
+                zipdata.write(os.path.join(folder, file), os.path.relpath(os.path.join(folder,file), path), compress_type=zipfile.ZIP_DEFLATED)
+        zipdata.close()
+        wiz.response.download(zippath, as_attachment=True, filename=filename)
+    else:
+        path = fs.abspath(path)
+        wiz.response.download(path, as_attachment=True)
+
+    wiz.response.abort(404)

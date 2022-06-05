@@ -2,6 +2,9 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
     let _$timeout = $timeout;
     $timeout = (timestamp) => new Promise((resolve) => _$timeout(resolve, timestamp));
 
+    let platform = navigator?.userAgentData?.platform || navigator?.platform || 'unknown'
+    $scope.ismac = platform.toUpperCase().indexOf('MAC') >= 0;
+
     let alert = async (message) => {
         await wiz.connect("modal.message")
             .data({
@@ -53,6 +56,19 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
         if (diff < 2) return "just now";
         return Math.floor(diff) + " minutes ago";
     }
+    $scope.display.filesize = (value) => {
+        if (!value) return "--";
+        let kb = value / 1024;
+        if (kb < 1) return value + "B";
+        let mb = kb / 1024;
+        if (mb < 1) return Math.round(kb * 100) / 100 + "KB";
+        let gb = mb / 1024;
+        if (gb < 1) return Math.round(mb * 100) / 100 + "MB";
+        return Math.round(gb * 100) / 100 + "GB";
+    }
+    $scope.display.timer = (value) => {
+        return moment(new Date(value * 1000)).format("YYYY-MM-DD HH:mm:ss");
+    }
 
     // data binding
     $scope.data = {};
@@ -73,6 +89,11 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
     $scope.data.sortable = { handle: '.draggable' };
     $scope.data.search = {};
     $scope.data.apps = {};
+    $scope.data.files = {};
+    $scope.data.files.controller = {};
+    $scope.data.files.model = {};
+    $scope.data.files.themes = {};
+    $scope.data.files.resources = {};
 
     // cache binding
     $scope.cache = {};
@@ -113,7 +134,6 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
         }
         return data;
     }
-
     $scope.event.get.route = async (app_id, refresh) => {
         if (app_id != 'new') {
             if (!refresh && $scope.cache.routes[app_id]) return $scope.cache.routes[app_id];
@@ -135,17 +155,21 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
         }
         return data;
     }
+    $scope.event.get.files = async (mode, item) => {
+        let res = await wiz.API.async("load", { mode: mode, path: item.path });
+        if (res.code == 200) return res.data;
+        return null;
+    }
 
     // load list
     $scope.event.load = async (mode) => {
         if (!mode) mode = $scope.viewer.list.mode;
-        let res = await wiz.API.async("list", { mode: mode });
-        let data = res.data;
-        data.sort((a, b) => {
-            return a.package.id.localeCompare(b.package.id);
-        });
-
         if (mode == 'app') {
+            let res = await wiz.API.async("list", { mode: mode });
+            let data = res.data;
+            data.sort((a, b) => {
+                return a.package.id.localeCompare(b.package.id);
+            });
             $scope.data.apps = {};
             for (let i = 0; i < data.length; i++) {
                 let category = data[i].package.category;
@@ -153,10 +177,27 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
                 $scope.data.apps[category].push(data[i]);
             }
         } else if (mode == 'route') {
+            let res = await wiz.API.async("list", { mode: mode });
+            let data = res.data;
+            data.sort((a, b) => {
+                return a.package.id.localeCompare(b.package.id);
+            });
             $scope.data.routes = [];
             for (let i = 0; i < data.length; i++) {
                 $scope.data.routes.push(data[i]);
             }
+        } else if ($scope.data.files[mode]) {
+            let targetobj = $scope.data.files[mode];
+            if (!targetobj.path) targetobj.path = "";
+            let res = await wiz.API.async("list", { mode: mode, path: targetobj.path });
+            let data = res.data;
+            data.sort((a, b) => {
+                return a.name.localeCompare(b.name);
+            });
+            data.sort((a, b) => {
+                return b.type.localeCompare(a.type);
+            });
+            $scope.data.files[mode].list = data;
         }
 
         $scope.viewer.list.view = 'list';
@@ -204,6 +245,14 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
                     removes.push($scope.viewer.tabs.data[i]);
                 }
             }
+        } else {
+            res = await wiz.API.async("file_delete", { mode: mode, path: data.path });
+            for (let i = 0; i < $scope.viewer.tabs.data.length; i++) {
+                if ($scope.viewer.tabs.data[i].mode != mode) continue;
+                if ($scope.viewer.tabs.data[i].path == data.path) {
+                    removes.push($scope.viewer.tabs.data[i]);
+                }
+            }
         }
 
         // remove deleted tabs
@@ -233,6 +282,27 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
             let is_new = $scope.viewer.tabs.active_tab.new;
             let org_app_id = $scope.viewer.tabs.active_tab.org_app_id;
 
+            // set dic
+            let dic = $scope.viewer.tabs.active_tab.dic;
+            let dicv = {};
+            let dickey = 'default';
+            try {
+                for (let key in dic.data) {
+                    dickey = key;
+                    if (dic.data[key].length == 0 && key != 'default') {
+                        delete dic.data[key];
+                        dic.list.remove(key);
+                        dic.selected = 'default';
+                    } else {
+                        dicv[key] = JSON.parse(dic.data[key]);
+                    }
+                }
+            } catch (e) {
+                return alert('Dictionary value must be JSON format (' + dickey + ')');
+            }
+            data.dic = $scope.viewer.tabs.active_tab.data.dic = dicv;
+
+            // update
             if (is_new) {
                 let res = await wiz.API.async("app_create", { app_id: data.package.id, data: JSON.stringify(data) });
                 if (res.code != 200)
@@ -241,7 +311,6 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
                 $scope.viewer.tabs.active_tab.app_id = data.package.id;
                 delete $scope.viewer.tabs.active_tab.new;
                 $scope.cache.apps[data.package.id] = $scope.viewer.tabs.active_tab.data;
-                await $scope.event.load('app');
             } else {
                 if (data.package.id != org_app_id) {
                     let res = await wiz.API.async("app_rename", { app_id: org_app_id, rename: data.package.id });
@@ -260,12 +329,32 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
                 let res = await wiz.API.async("app_update", { app_id: data.package.id, data: JSON.stringify(data) });
                 if (res.code != 200)
                     return alert(res.data);
-                await $scope.event.load('app');
             }
         } else if (mode == 'route') {
             let is_new = $scope.viewer.tabs.active_tab.new;
             let org_app_id = $scope.viewer.tabs.active_tab.org_app_id;
 
+            // set dic
+            let dic = $scope.viewer.tabs.active_tab.dic;
+            let dicv = {};
+            let dickey = 'default';
+            try {
+                for (let key in dic.data) {
+                    dickey = key;
+                    if (dic.data[key].length == 0 && key != 'default') {
+                        delete dic.data[key];
+                        dic.list.remove(key);
+                        dic.selected = 'default';
+                    } else {
+                        dicv[key] = JSON.parse(dic.data[key]);
+                    }
+                }
+            } catch (e) {
+                return alert('Dictionary value must be JSON format (' + dickey + ')');
+            }
+            data.dic = $scope.viewer.tabs.active_tab.data.dic = dicv;
+
+            // update
             if (is_new) {
                 let res = await wiz.API.async("route_create", { app_id: data.package.id, data: JSON.stringify(data) });
                 if (res.code != 200)
@@ -293,14 +382,38 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
                 let res = await wiz.API.async("route_update", { app_id: data.package.id, data: JSON.stringify(data) });
                 if (res.code != 200)
                     return alert(res.data);
-                await $scope.event.load('route');
             }
+        } else {
+            let item = angular.copy($scope.viewer.tabs.active_tab.data);
+            let data = {};
+            data.mode = mode;
+            data.path = item.path;
+            data.name = item.name;
+            data.type = 'file';
+            if (item.data.type == 'code') {
+                data.type = 'code';
+                data.data = item.data.data;
+            }
+
+            let res = await wiz.API.async("file_update", data);
+            if (res.code != 200)
+                return alert('Error on save');
+
+            delete $scope.viewer.tabs.active_tab.new;
         }
+
+        await $scope.event.load(mode);
+
+        $('iframe').each(function () {
+            let src = $(this).attr('src');
+            $(this).attr('src', src);
+        });
 
         toastr.success('saved');
         await $timeout();
     }
 
+    // search apps or routes
     $scope.event.search = async (val) => {
         val = val.toLowerCase();
         if ($scope.viewer.list.mode == 'app') {
@@ -346,54 +459,6 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
         $timeout();
     }
 
-    // app editor
-    $scope.app = {};
-
-    $scope.app.preview = {};
-    $scope.app.preview.status = false;
-    $scope.app.preview.load = async () => {
-        let url = "/dizest/ui/viewer/" + $scope.workflow_id + "/" + $scope.flow_id;
-        $scope.app.preview.status = false;
-        await $timeout();
-        $('iframe.preview').attr('src', url);
-        $('iframe.preview').on('load', async () => {
-            $scope.app.preview.status = true;
-            await $timeout();
-        });
-    }
-
-    $scope.app.init = {};
-    $scope.app.init.editor = async () => {
-        $scope.app.view = 'empty';
-        await $timeout();
-        $scope.app.view = 'editor';
-        await $timeout();
-    }
-
-    $scope.app.delete = async () => {
-        if ($scope.workflow_id != 'develop') return;
-        let data = angular.copy($scope.app.data);
-        let res = await wiz.connect("page.hub.app.editor.modal.message")
-            .data({
-                title: "Delete App",
-                message: "Are you sure delete `" + data.title + "` app?",
-                btn_close: 'Close',
-                btn_action: "Delete",
-                btn_class: "btn-danger"
-            })
-            .event("modal-show");
-
-        if (!res) {
-            return;
-        }
-
-        res = await wiz.API.async("delete", { workflow_id: $scope.workflow_id, data: JSON.stringify(data) });
-        $scope.app.data = null;
-        await $timeout();
-
-        if ($scope.app._remove) await $scope.app._remove();
-    }
-
     // viewer
     $scope.viewer = {};
 
@@ -437,6 +502,20 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
         return obj;
     })();
 
+    $scope.viewer.shortcut = (function () {
+        let obj = {};
+        obj.show = false;
+        obj.toggle = async () => {
+            if (obj.show) {
+                obj.show = false;
+            } else {
+                obj.show = true;
+            }
+            await $timeout();
+        }
+        return obj;
+    })();
+
     $scope.viewer.debug = (function () {
         let obj = {};
         obj.show = false;
@@ -451,18 +530,16 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
         return obj;
     })();
 
+    // tab generator
     let tab_generator = {};
     tab_generator.app = async (app_id, target) => {
         let obj = {};
-        obj.id = 'editor-' + new Date().getTime();
+        obj.id = 'wiztab-' + new Date().getTime();
         obj.mode = 'app';
         obj.data = await $scope.event.get.app(app_id);
         obj.app_id = obj.data.package.id;
         obj.org_app_id = obj.data.package.id + '';
-
-        if (obj.app_id === '') {
-            obj.new = true;
-        }
+        if (!obj.app_id) obj.new = true;
 
         obj.activate = async () => {
             while (!obj.editor) await $timeout(100);
@@ -473,6 +550,36 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
             await $timeout();
         }
 
+        // dic builder
+        if (typeof (obj.data.dic) == 'string') obj.data.dic = {};
+
+        obj.dic = {};
+        obj.dic.list = ['default'];
+        obj.dic.data = {};
+        try {
+            for (let lang in obj.data.dic) {
+                if (lang != 'default')
+                    obj.dic.list.push(lang);
+                obj.dic.data[lang] = JSON.stringify(obj.data.dic[lang], null, 4);
+            }
+        } catch (e) {
+        }
+        if (!obj.dic.data.default) obj.dic.data.default = '{\n    "hello": "hello, World!"\n}';
+        obj.dic.selected = 'default';
+        obj.dic.create = async (value) => {
+            let test = /^[a-zA-Z]+$/.test(value);
+            if (!test || value.length != 2) {
+                return alert('Language must be 2 length alphabets.');
+            }
+            value = value.toLowerCase();
+            if (!obj.dic.data[value]) obj.dic.data[value] = '{\n    "hello": "hello, World!"\n}';
+            if (!obj.dic.list.includes(value)) obj.dic.list.push(value);
+            obj.dic.new = '';
+            await $timeout();
+        }
+        obj.dic.monaco = monaco_option('json', obj);
+
+        // code builder
         obj.code = {};
         obj.code.list = ['controller', 'api', 'socketio', 'html', 'js', 'css', 'dic', 'preview'];
         obj.code.select = async (target) => {
@@ -480,16 +587,12 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
             await $timeout();
             obj.code.target = target;
 
-            if (target == 'dic') {
-
-            } else if (target == 'preview') {
-
-            } else {
+            if (target != 'dic' && target != 'preview') {
                 let map = { controller: 'python', api: 'python', socketio: 'python', css: obj.data.package.properties.css, html: obj.data.package.properties.html, js: 'javascript' };
-                obj.show = true;
                 obj.monaco = monaco_option(map[target], obj);
             }
 
+            obj.show = true;
             await $timeout();
         }
 
@@ -497,7 +600,6 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
         obj.code.select(target);
         return obj;
     }
-
     tab_generator.route = async (app_id, target) => {
         let obj = {};
         obj.id = 'editor-' + new Date().getTime();
@@ -505,10 +607,7 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
         obj.data = await $scope.event.get.route(app_id);
         obj.app_id = obj.data.package.id;
         obj.org_app_id = obj.data.package.id + '';
-
-        if (obj.app_id === '') {
-            obj.new = true;
-        }
+        if (!obj.app_id) obj.new = true;
 
         obj.activate = async () => {
             while (!obj.editor) await $timeout(100);
@@ -519,6 +618,36 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
             await $timeout();
         }
 
+        // dic builder
+        if (typeof (obj.data.dic) == 'string') obj.data.dic = {};
+
+        obj.dic = {};
+        obj.dic.list = ['default'];
+        obj.dic.data = {};
+        try {
+            for (let lang in obj.data.dic) {
+                if (lang != 'default')
+                    obj.dic.list.push(lang);
+                obj.dic.data[lang] = JSON.stringify(obj.data.dic[lang], null, 4);
+            }
+        } catch (e) {
+        }
+        if (!obj.dic.data.default) obj.dic.data.default = '{\n    "hello": "hello, World!"\n}';
+        obj.dic.selected = 'default';
+        obj.dic.create = async (value) => {
+            let test = /^[a-zA-Z]+$/.test(value);
+            if (!test || value.length != 2) {
+                return alert('Language must be 2 length alphabets.');
+            }
+            value = value.toLowerCase();
+            if (!obj.dic.data[value]) obj.dic.data[value] = '{\n    "hello": "hello, World!"\n}';
+            if (!obj.dic.list.includes(value)) obj.dic.list.push(value);
+            obj.dic.new = '';
+            await $timeout();
+        }
+        obj.dic.monaco = monaco_option('json', obj);
+
+        // code builder
         obj.code = {};
         obj.code.list = ['controller', 'dic', 'preview'];
         obj.code.select = async (target) => {
@@ -526,16 +655,12 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
             await $timeout();
             obj.code.target = target;
 
-            if (target == 'dic') {
-
-            } else if (target == 'preview') {
-
-            } else {
+            if (target != 'dic' && target != 'preview') {
                 let map = { controller: 'python' };
-                obj.show = true;
                 obj.monaco = monaco_option(map[target], obj);
             }
 
+            obj.show = true;
             await $timeout();
         }
 
@@ -543,7 +668,63 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
         obj.code.select(target);
         return obj;
     }
+    tab_generator.files = async (mode, item) => {
+        let data = await $scope.event.get.files(mode, item);
+        if (!data) {
+            alert("Not supported file");
+            return null;
+        }
 
+        item.data = data;
+
+        let obj = {};
+        obj.id = 'editor-' + new Date().getTime();
+        obj.mode = mode;
+        obj.data = item;
+        obj.path = obj.data.path;
+
+        obj.activate = async () => {
+            if (obj.data.data.type == 'code') {
+                while (!obj.editor) {
+                    await $timeout(100);
+                }
+                obj.editor.focus();
+            }
+            $scope.viewer.tabs.active_tab = obj;
+            await $timeout();
+        }
+
+        if (obj.data.data.type == 'code')
+            obj.monaco = monaco_option(obj.data.data.lang, obj);
+        if (obj.data.data.type == 'image')
+            obj.data.data.data = wiz.API.url("download?mode=" + mode + "&path=" + encodeURIComponent(obj.data.data.data));
+
+        return obj;
+    }
+
+    // file generator
+    $scope.viewer.fsnew = {};
+    $scope.viewer.fsnew.data = {};
+    $scope.viewer.fsnew.update = async () => {
+        let data = angular.copy($scope.viewer.fsnew.data);
+
+        if (!data.name) {
+            $scope.viewer.fsnew.data = {};
+            await $timeout();
+            return;
+        }
+
+        let res = await wiz.API.async('file_create', data);
+        if (res.code != 200) {
+            return alert(res.data);
+        }
+
+        $scope.viewer.fsnew.data = {};
+        await $scope.event.load(data.mode);
+        await $timeout();
+    }
+
+    // tab viewer
     $scope.viewer.tabs = await (async () => {
         let obj = {};
 
@@ -583,6 +764,45 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
                 tab = await tab_generator.app(target, 'controller');
             } else if (mode == 'route') {
                 tab = await tab_generator.route(target, 'controller');
+            } else {
+                if (!target) {
+                    let path = $scope.data.files[mode].path;
+                    path = path.split("/");
+                    path.splice(path.length - 1, 1);
+                    path = path.join("/");
+                    $scope.data.files[mode].path = path;
+                    await $scope.event.load(mode);
+                    return;
+                }
+
+                let path = $scope.data.files[mode].path;
+                if (target == 'new') {
+                    $scope.viewer.fsnew.data = { active: true, mode: mode, path: path, name: '', type: 'file', data: '' };
+                    await $timeout();
+                    return;
+                }
+
+                if (target == 'newfolder') {
+                    $scope.viewer.fsnew.data = { active: true, mode: mode, path: path, name: '', type: 'folder' };
+                    await $timeout();
+                    return;
+                }
+
+                if (target.type == 'folder') {
+                    $scope.data.files[mode].path = target.path;
+                    await $scope.event.load(mode);
+                    return;
+                }
+
+                for (let i = 0; i < obj.data.length; i++) {
+                    if (obj.data[i].mode != mode) continue;
+                    if (obj.data[i].path == target.path) {
+                        await obj.data[i].activate();
+                        return;
+                    }
+                }
+
+                tab = await tab_generator.files(mode, target);
             }
 
             if (tab) {
@@ -591,6 +811,7 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
                 } else {
                     obj.data.push(tab);
                 }
+                $scope.viewer.info.show = true;
             }
 
             await $timeout();
@@ -644,54 +865,69 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
     $scope.shortcut = {};
     $scope.shortcut.configuration = (monaco) => {
         return {
-            'tab1': {
-                key: 'Alt Digit1',
-                monaco: monaco.KeyMod.Alt | monaco.KeyCode.DIGIT1,
+            'save': {
+                key: 'Ctrl KeyS',
+                desc: 'save',
+                monaco: monaco.KeyMod.CtrlCmd | monaco.KeyCode.KEY_S,
                 fn: async () => {
-                    if ($scope.viewer.tabs.data[0])
-                        await $scope.viewer.tabs.data[0].activate();
-                    await $timeout();
+                    await $scope.event.save();
                 }
             },
-            'tab2': {
-                key: 'Alt Digit2',
-                monaco: monaco.KeyMod.Alt | monaco.KeyCode.DIGIT2,
+            'tree': {
+                key: 'Ctrl KeyL',
+                desc: 'toggle file browser',
+                monaco: monaco.KeyMod.CtrlCmd | monaco.KeyCode.KEY_L,
                 fn: async () => {
-                    if ($scope.viewer.tabs.data[1])
-                        await $scope.viewer.tabs.data[1].activate();
-                    await $timeout();
+                    await $scope.viewer.list.toggle();
                 }
             },
-            'tab3': {
-                key: 'Alt Digit3',
-                monaco: monaco.KeyMod.Alt | monaco.KeyCode.DIGIT3,
+            'debug': {
+                key: 'Ctrl KeyJ',
+                desc: 'toggle debug panel',
+                monaco: monaco.KeyMod.CtrlCmd | monaco.KeyCode.KEY_J,
                 fn: async () => {
-                    if ($scope.viewer.tabs.data[2])
-                        await $scope.viewer.tabs.data[2].activate();
-                    await $timeout();
+                    await $scope.viewer.debug.toggle();
                 }
             },
-            'tab4': {
-                key: 'Alt Digit4',
-                monaco: monaco.KeyMod.Alt | monaco.KeyCode.DIGIT4,
+            'debug_clear': {
+                key: 'Ctrl KeyK',
+                desc: 'clear dubug log',
+                monaco: monaco.KeyMod.CtrlCmd | monaco.KeyCode.KEY_K,
                 fn: async () => {
-                    if ($scope.viewer.tabs.data[3])
-                        await $scope.viewer.tabs.data[3].activate();
-                    await $timeout();
+                    // await $scope.socket.clear();
                 }
             },
-            'tab5': {
-                key: 'Alt Digit5',
-                monaco: monaco.KeyMod.Alt | monaco.KeyCode.DIGIT5,
+            'info': {
+                key: 'Ctrl KeyI',
+                desc: 'toggle info panel',
+                monaco: monaco.KeyMod.CtrlCmd | monaco.KeyCode.KEY_I,
                 fn: async () => {
-                    if ($scope.viewer.tabs.data[4])
-                        await $scope.viewer.tabs.data[4].activate();
-                    await $timeout();
+                    await $scope.viewer.info.toggle();
                 }
             },
 
+            'new_file': {
+                key: 'Alt KeyN',
+                desc: 'create new file',
+                monaco: monaco.KeyMod.Alt | monaco.KeyCode.KEY_N,
+                fn: async () => {
+                    await $scope.viewer.tabs.add($scope.viewer.list.mode, 'new');
+                    await $timeout();
+                }
+            },
+            'spotlight': {
+                key: 'Ctrl Shift KeyF',
+                desc: 'auto focus to search form',
+                monaco: monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KEY_F,
+                fn: async () => {
+                    $('input#search').focus();
+                }
+            },
+
+            // code shortcuts
             'code_prev': {
                 key: 'Alt KeyA',
+                desc: 'move prev code',
                 monaco: monaco.KeyMod.Alt | monaco.KeyCode.KEY_A,
                 fn: async () => {
                     if (!$scope.viewer.tabs.active_tab) return;
@@ -713,6 +949,7 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
             },
             'code_next': {
                 key: 'Alt KeyS',
+                desc: 'move next code',
                 monaco: monaco.KeyMod.Alt | monaco.KeyCode.KEY_S,
                 fn: async () => {
                     if (!$scope.viewer.tabs.active_tab) return;
@@ -733,22 +970,52 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
                 }
             },
 
+            // tab shortcuts
+            // 'tabprev': {
+            //     key: 'Ctrl Shift ArrowLeft',
+            //     desc: 'move previous tab',
+            //     monaco: monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.LeftArrow,
+            //     fn: async () => {
+            //         let idx = $scope.viewer.tabs.data.indexOf($scope.viewer.tabs.active_tab)
+            //         idx = idx - 1;
+            //         if (!$scope.viewer.tabs.data[idx]) idx = $scope.viewer.tabs.data.length - 1;
+            //         if ($scope.viewer.tabs.data[idx]) await $scope.viewer.tabs.data[idx].activate();
+            //         await $timeout();
+            //     }
+            // },
+            // 'tabnext': {
+            //     key: 'Ctrl Shift ArrowRight',
+            //     desc: 'move next tab',
+            //     monaco: monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.RightArrow,
+            //     fn: async () => {
+            //         let idx = $scope.viewer.tabs.data.indexOf($scope.viewer.tabs.active_tab)
+            //         idx = idx + 1;
+            //         if (!$scope.viewer.tabs.data[idx]) idx = 0;
+            //         if ($scope.viewer.tabs.data[idx]) await $scope.viewer.tabs.data[idx].activate();
+            //         await $timeout();
+            //     }
+            // },
+
             'new_tab': {
                 key: 'Alt KeyT',
+                desc: 'new tab (open active tab)',
                 monaco: monaco.KeyMod.Alt | monaco.KeyCode.KEY_T,
                 fn: async () => {
                     if (!$scope.viewer.tabs.active_tab) return;
                     if ($scope.viewer.tabs.active_tab.mode == 'app') {
                         let targetidx = $scope.viewer.tabs.data.indexOf($scope.viewer.tabs.active_tab);
                         $scope.viewer.tabs.add('app', $scope.viewer.tabs.active_tab.app_id, targetidx + 1);
+                    } else if ($scope.viewer.tabs.active_tab.mode == 'route') {
+                        let targetidx = $scope.viewer.tabs.data.indexOf($scope.viewer.tabs.active_tab);
+                        $scope.viewer.tabs.add('route', $scope.viewer.tabs.active_tab.app_id, targetidx + 1);
                     }
 
                     await $timeout();
                 }
             },
-
             'close_tab': {
                 key: 'Alt KeyW',
+                desc: 'close tab',
                 monaco: monaco.KeyMod.Alt | monaco.KeyCode.KEY_W,
                 fn: async () => {
                     if ($scope.viewer.tabs.active_tab)
@@ -756,42 +1023,54 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
                     await $timeout();
                 }
             },
-
-            'new': {
-                key: 'Alt KeyN',
-                monaco: monaco.KeyMod.Alt | monaco.KeyCode.KEY_N,
+            'tab1': {
+                key: 'Ctrl Digit1',
+                desc: 'move tab 1',
+                monaco: monaco.KeyMod.CtrlCmd | monaco.KeyCode.DIGIT1,
                 fn: async () => {
-                    await $scope.viewer.tabs.add('app', 'new');
+                    if ($scope.viewer.tabs.data[0])
+                        await $scope.viewer.tabs.data[0].activate();
                     await $timeout();
                 }
             },
-
-            'debug': {
-                key: 'Ctrl KeyJ',
-                monaco: monaco.KeyMod.CtrlCmd | monaco.KeyCode.KEY_J,
+            'tab2': {
+                key: 'Ctrl Digit2',
+                desc: 'move tab 2',
+                monaco: monaco.KeyMod.CtrlCmd | monaco.KeyCode.DIGIT2,
                 fn: async () => {
-                    await $scope.viewer.debug.toggle();
+                    if ($scope.viewer.tabs.data[1])
+                        await $scope.viewer.tabs.data[1].activate();
+                    await $timeout();
                 }
             },
-            'info': {
-                key: 'Ctrl KeyI',
-                monaco: monaco.KeyMod.CtrlCmd | monaco.KeyCode.KEY_I,
+            'tab3': {
+                key: 'Ctrl Digit3',
+                desc: 'move tab 3',
+                monaco: monaco.KeyMod.CtrlCmd | monaco.KeyCode.DIGIT3,
                 fn: async () => {
-                    await $scope.viewer.info.toggle();
+                    if ($scope.viewer.tabs.data[2])
+                        await $scope.viewer.tabs.data[2].activate();
+                    await $timeout();
                 }
             },
-            'save': {
-                key: 'Ctrl KeyS',
-                monaco: monaco.KeyMod.CtrlCmd | monaco.KeyCode.KEY_S,
+            'tab4': {
+                key: 'Ctrl Digit4',
+                desc: 'move tab 4',
+                monaco: monaco.KeyMod.CtrlCmd | monaco.KeyCode.DIGIT4,
                 fn: async () => {
-                    await $scope.event.save();
+                    if ($scope.viewer.tabs.data[3])
+                        await $scope.viewer.tabs.data[3].activate();
+                    await $timeout();
                 }
             },
-            'clear': {
-                key: 'Ctrl KeyK',
-                monaco: monaco.KeyMod.CtrlCmd | monaco.KeyCode.KEY_K,
+            'tab5': {
+                key: 'Ctrl Digit5',
+                desc: 'move tab 5',
+                monaco: monaco.KeyMod.CtrlCmd | monaco.KeyCode.DIGIT5,
                 fn: async () => {
-                    // await $scope.socket.clear();
+                    if ($scope.viewer.tabs.data[4])
+                        await $scope.viewer.tabs.data[4].activate();
+                    await $timeout();
                 }
             }
         }
@@ -813,6 +1092,7 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
 
         let shortcut_opts = {};
         let shortcuts = $scope.shortcut.configuration(window.monaco);
+        $scope.shortcut.list = angular.copy(shortcuts);
 
         for (let key in shortcuts) {
             let keycode = shortcuts[key].key;
@@ -828,5 +1108,5 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
     }
 
     await $scope.shortcut.bind();
-
+    window.onbeforeunload = () => "";
 }

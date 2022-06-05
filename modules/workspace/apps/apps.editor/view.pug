@@ -9,12 +9,19 @@
                     .text-center
                         img.m-0(src="{$ wiz.url.resource('img/logo-white.png') $}" style='height:36px;')
 
-            .footer-menu.d-flex
-                .search(style="flex: auto;")
-                    input.form-control.form-control-sm.form-control-round(type="text" placeholder="Search..." ng-model="data.search.text" ng-change="event.search(data.search.text)")
-                .btn.btn-sm.btn-primary.btn-circle.ml-1(style="width: 48px;" ng-click="viewer.list.change()")
-                    i.fa-solid.fa-folder-tree(ng-if="viewer.list.view == 'list'")
-                    i.fa-solid.fa-xmark(ng-if="viewer.list.view != 'list'")
+            .footer-menu.d-flex(ng-if="viewer.list.view != 'list'")
+                span Components 
+
+            .footer-menu.d-flex(ng-if="viewer.list.view == 'list'")
+                .search(style="flex: auto;" ng-if="['app', 'route'].includes(viewer.list.mode)")
+                    input#search.form-control.form-control-sm.form-control-round(type="text" placeholder="Search..." ng-model="data.search.text" ng-change="event.search(data.search.text)")
+                .ml-auto
+                .btn.btn-sm.btn-primary.btn-circle.ml-1(ng-if="!['app', 'route'].includes(viewer.list.mode)" style="width: 36px;" ng-click="viewer.tabs.add(viewer.list.mode, 'newfolder')")
+                    i.fa-solid.fa-folder-plus
+                .btn.btn-sm.btn-primary.btn-circle.ml-1(style="width: 36px;" ng-click="viewer.tabs.add(viewer.list.mode, 'new')")
+                    i.fa-solid.fa-plus
+                .btn.btn-sm.btn-primary.btn-circle.ml-1(ng-if="viewer.list.view == 'list'" style="width: 36px;" ng-click="viewer.list.change()")
+                    i.fa-solid.fa-xmark
 
             #navbar-menu.navbar-collapse.collapse
                 .list-container(ng-if="viewer.list.view == 'select'")
@@ -57,7 +64,7 @@
                         li.nav-item
                             .row.m-0.p-0
                                 .col.m-0.p-0
-                                    a.nav-link(ng-click="event.load('theme')")
+                                    a.nav-link(ng-click="event.load('themes')")
                                         span.mr-2(style="width: 20px; text-align: center;")
                                             i.fa-solid.fa-display
                                         .d-block
@@ -73,13 +80,13 @@
                                             .nav-link-title Resources
 
                 .list-container(ng-if="viewer.list.view == 'list'")
-                    ul.navbar-nav(ng-repeat="category in data.category" ng-if="data.apps[category.id].length > 0" ng-if="viewer.list.mode == 'app'")
+                    ul.navbar-nav(ng-repeat="category in data.category" ng-if="data.apps[category.id].length > 0 && viewer.list.mode == 'app'")
                         li.nav-item.nav-item-header 
                             .text-left
                                 span {{category.title}}
-                                small.ml-1.text-muted ({{data.apps[category.id].length}})
+                                small.ml-1.text-muted ({{data.apps[category.id] ? data.apps[category.id].length : 0 }})
                         
-                        li.nav-item(ng-repeat="item in data.apps[category.id]" ng-if="!item.hide" class="{{viewer.tabs.active_tab.org_app_id == item.package.id ? 'active' : ''}}")
+                        li.nav-item(ng-repeat="item in data.apps[category.id]" ng-if="!item.hide" class="{{viewer.tabs.active_tab.mode == viewer.list.mode && viewer.tabs.active_tab.org_app_id == item.package.id ? 'active' : ''}}")
                             .row.m-0.p-0
                                 .col.m-0.p-0
                                     a.nav-link(ng-click="viewer.tabs.add('app', item.package.id)")
@@ -92,13 +99,13 @@
                                 .nav-item-status.col-auto.align-self-center.m-0.p-0.mr-2
                                     i.fa-solid.fa-circle
                     
-                    ul.navbar-nav(ng-if="data.routes.length > 0" ng-if="viewer.list.mode == 'route'")
+                    ul.navbar-nav(ng-if="data.routes.length > 0 && viewer.list.mode == 'route'")
                         li.nav-item.nav-item-header
                             .text-left
                                 span routes
                                 small.ml-1.text-muted ({{data.routes.length}})
                         
-                        li.nav-item(ng-repeat="item in data.routes" ng-if="!item.hide" class="{{viewer.tabs.active_tab.org_app_id == item.package.id ? 'active' : ''}}")
+                        li.nav-item(ng-repeat="item in data.routes" ng-if="!item.hide" class="{{viewer.tabs.active_tab.mode == viewer.list.mode && viewer.tabs.active_tab.org_app_id == item.package.id ? 'active' : ''}}")
                             .row.m-0.p-0
                                 .col.m-0.p-0
                                     a.nav-link(ng-click="viewer.tabs.add('route', item.package.id)")
@@ -107,6 +114,45 @@
                                         .d-block
                                             .nav-link-title {{item.package.title}}
                                             small.text-muted {{item.package.id}}
+                                    
+                                .nav-item-status.col-auto.align-self-center.m-0.p-0.mr-2
+                                    i.fa-solid.fa-circle
+
+                    ul.navbar-nav(ng-if="['controller', 'model', 'themes', 'resources'].includes(viewer.list.mode)")
+                        li.nav-item.nav-item-header
+                            .text-left
+                                span {{viewer.list.mode}}/{{data.files[viewer.list.mode].path}}
+
+                        li.nav-item(ng-click="viewer.tabs.add(viewer.list.mode)" ng-if="data.files[viewer.list.mode].path")
+                            .d-block(style="padding: 6px 12px;")
+                                svg.icon.mr-2(xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round")
+                                    path(stroke="none" d="M0 0h24v24H0z" fill="none")
+                                    path(d="M18 18h-6a3 3 0 0 1 -3 -3v-10l-4 4m8 0l-4 -4")
+                                span ...
+                        
+                        li.nav-item(ng-if="viewer.fsnew.data.active")
+                            .row.m-0.p-0
+                                .col.m-0.p-0
+                                    a.nav-link
+                                        span.mr-2(style="width: 36px; text-align: center;")
+                                            .avatar-area.avatar-area-sm
+                                                .avatar-container(class="{{viewer.fsnew.data.type == 'folder' ? 'folder' : ''}}")
+                                                    i.fa-solid.fa-file(ng-if="viewer.fsnew.data.type == 'file'")
+                                                    i.fa-solid.fa-folder(ng-if="viewer.fsnew.data.type == 'folder'")
+                                        input.form-control.form-control-sm.form-control-round(style="height: 36px;" type="text" ng-model="viewer.fsnew.data.name" placeholder="file/folder name" ng-enter="viewer.fsnew.update()")
+                                    
+                        li.nav-item(ng-repeat="item in data.files[viewer.list.mode].list" ng-if="!item.hide" class="{{viewer.tabs.active_tab.mode == viewer.list.mode && viewer.tabs.active_tab.path == item.path ? 'active' : ''}}")
+                            .row.m-0.p-0
+                                .col.m-0.p-0
+                                    a.nav-link(ng-click="viewer.tabs.add(viewer.list.mode, item)")
+                                        span.mr-2(style="width: 36px; text-align: center;")
+                                            .avatar-area.avatar-area-sm
+                                                .avatar-container(class="{{item.type == 'folder' ? 'folder' : ''}}")
+                                                    i.fa-solid.fa-file(ng-if="item.type == 'file'")
+                                                    i.fa-solid.fa-folder(ng-if="item.type == 'folder'")
+                                        .d-block
+                                            .nav-link-title {{item.name}}
+                                            small.text-muted {{display.filesize(item.size)}}
                                     
                                 .nav-item-status.col-auto.align-self-center.m-0.p-0.mr-2
                                     i.fa-solid.fa-circle
@@ -149,7 +195,7 @@
                             a.btn.btn-primary.mr-1(ng-click="")
                                 i.fa-solid.fa-cloud-arrow-up
 
-                            a.btn.btn-primary.mr-1(ng-click="viewer.tabs.add(viewer.list.mode, 'new')")
+                            a.btn.btn-primary.mr-1(ng-click="viewer.tabs.add(viewer.tabs.active_tab.mode == 'route' ? 'route' : 'app', 'new')")
                                 i.fa-solid.fa-plus
 
                             a.btn.btn-primary.mr-1(ng-click="") Clean
@@ -160,148 +206,235 @@
                                 i.fa-solid.fa-xmark
             
             .workspace-list-item
-                .info-area(ng-if="viewer.info.show")
-                    .app-info-area(ng-if="viewer.tabs.active_tab.mode == 'app'")
-                        .form-group.d-flex.p-3.pt-2.pb-2.bg-primary-lt
-                            h3(style="max-width: 220px; overflow: hidden; text-overflow: ellipsis;") {{viewer.tabs.active_tab.new ? 'new' : viewer.tabs.active_tab.data.package.title}}
-                            .ml-auto
+                .info-area(ng-if="viewer.info.show && viewer.tabs.active_tab")
+                    .file-info-area(ng-if="!['route', 'app'].includes(viewer.tabs.active_tab.mode)")
+                        .form-group.d-flex.p-3.pt-2.pb-2.bg-primary-lt(style="height: 40px;")
+                            h3.nowrap(style="max-width: 220px; overflow: hidden; text-overflow: ellipsis;") 
+                                span {{viewer.tabs.active_tab.mode}}
+
+                            .ml-auto(ng-if="!viewer.tabs.active_tab.new")
                                 button.btn.btn-primary.btn-circle.btn-sm(style="height: 24px; width: 24px;" ng-click="viewer.info.toggle()")
                                     i.fa-solid.fa-xmark
 
-                        .form-group.d-flex.p-3.pt-1.pb-1.bg-secondary
-                            h4 Package
+                        .scroll(style="height: calc(100% - 40px); overflow: auto;")
+                            .form-group.d-flex.p-3.pt-1.pb-1.bg-secondary
+                                h4 File Info
 
-                        .form-group.row
-                            .col-3
-                                label.form-label.col-form-label App ID
-                            .col
-                                input.form-control.form-control-sm.form-control-round(type="text" ng-model="viewer.tabs.active_tab.data.package.id" placeholder="page.auth.login")
+                            .form-group.row
+                                .col-3
+                                    label.form-label.col-form-label File
+                                .col
+                                    input.form-control.form-control-sm.form-control-round(type="text" ng-model="viewer.tabs.active_tab.data.name" placeholder="some.py")
+                            
+                            .form-group.row
+                                .col-3
+                                    label.form-label.col-form-label Folder
+                                .col 
+                                    .p-2.text-muted(style="width: 100%; word-break: break-all;") {{viewer.tabs.active_tab.mode}}/{{viewer.tabs.active_tab.data.parent}}
 
-                        .form-group.row
-                            .col-3
-                                label.form-label.col-form-label Title
-                            .col
-                                input.form-control.form-control-sm.form-control-round(type="text" ng-model="viewer.tabs.active_tab.data.package.title" placeholder="App Title")
+                            .form-group.row
+                                .col-3
+                                    label.form-label.col-form-label Size
+                                .col
+                                    .p-2.text-muted(style="width: 100%; word-break: break-all;") {{display.filesize(viewer.tabs.active_tab.data.size)}}
+                            
+                            .form-group.row
+                                .col-3
+                                    label.form-label.col-form-label Timestamp
+                                .col
+                                    .p-2.text-muted(style="width: 100%; word-break: break-all;") {{display.timer(viewer.tabs.active_tab.data.ctime)}}
+                            
+                            .form-group.d-flex.p-3.pt-1.pb-1.bg-secondary(ng-if="!viewer.tabs.active_tab.new")
+                                h4 Delete
 
-                        .form-group.row
-                            .col-3
-                                label.form-label.col-form-label View URI
-                            .col
-                                input.form-control.form-control-sm.form-control-round(type="text" ng-model="viewer.tabs.active_tab.data.package.viewuri" placeholder="/routename/path")
-                        
-                        .form-group.row
-                            .col-3
-                                label.form-label.col-form-label Category
-                            .col.col-form-select
-                                .form-selectgroup
-                                    label.form-selectgroup-item(ng-repeat="item in data.category")
-                                        input.form-selectgroup-input(type="radio" name="category" value="{{item.id}}" ng-model="viewer.tabs.active_tab.data.package.category")
-                                        span.form-selectgroup-label {{item.title}}
-                        
-                        .form-group.row
-                            .col-3
-                                label.form-label.col-form-label Controller
-                            .col.col-form-select
-                                .form-selectgroup
-                                    label.form-selectgroup-item(ng-repeat="item in data.controller")
-                                        input.form-selectgroup-input(type="radio" name="controller" value="{{item}}" ng-model="viewer.tabs.active_tab.data.package.controller")
-                                        span.form-selectgroup-label {{item ? item : 'Not use'}}
+                            .p-3(ng-if="!viewer.tabs.active_tab.new")
+                                .btn.btn-outline-danger.btn-block(ng-click="event.delete()") Delete
 
-                        .form-group.row
-                            .col-3
-                                label.form-label.col-form-label Theme
-                            .col.col-form-select
-                                .form-selectgroup
-                                    label.form-selectgroup-item.d-block(ng-repeat="item in data.theme")
-                                        input.form-selectgroup-input(type="radio" name="theme" value="{{item}}" ng-model="viewer.tabs.active_tab.data.package.theme")
-                                        span.form-selectgroup-label.d-block {{item ? item : 'Not use'}}
+                    .app-info-area(ng-if="viewer.tabs.active_tab.mode == 'app'")
+                        .form-group.d-flex.p-3.pt-2.pb-2.bg-primary-lt(style="height: 40px;")
+                            h3.nowrap(style="max-width: 220px; overflow: hidden; text-overflow: ellipsis;") 
+                                span.btn.btn-sm.btn-primary.btn-circle.mr-2 app
+                                span {{viewer.tabs.active_tab.new ? 'new' : viewer.tabs.active_tab.data.package.title}}
+                            .ml-auto(ng-if="!viewer.tabs.active_tab.new")
+                                button.btn.btn-primary.btn-circle.btn-sm(style="height: 24px; width: 24px;" ng-click="viewer.info.toggle()")
+                                    i.fa-solid.fa-xmark
 
-                        .form-group.d-flex.p-3.pt-1.pb-1.bg-secondary
-                            h4 Compiler
-                        
-                        .form-group.row
-                            .col-3
-                                label.form-label.col-form-label HTML
-                            .col.col-form-select
-                                .form-selectgroup
-                                    label.form-selectgroup-item(ng-repeat="item in data.lang.html")
-                                        input.form-selectgroup-input(type="radio" name="compiler_html" value="{{item}}" ng-model="viewer.tabs.active_tab.data.package.properties.html")
-                                        span.form-selectgroup-label {{ item }}
-                        
-                        .form-group.row
-                            .col-3
-                                label.form-label.col-form-label CSS
-                            .col.col-form-select
-                                .form-selectgroup
-                                    label.form-selectgroup-item(ng-repeat="item in data.lang.css")
-                                        input.form-selectgroup-input(type="radio" name="compiler_css" value="{{item}}" ng-model="viewer.tabs.active_tab.data.package.properties.css")
-                                        span.form-selectgroup-label {{ item }}
-                        
-                        
-                        .form-group.d-flex.p-3.pt-1.pb-1.bg-secondary(ng-if="!viewer.tabs.active_tab.new")
-                            h4 Delete
-                        .p-3(ng-if="!viewer.tabs.active_tab.new")
-                            .btn.btn-outline-danger.btn-block(ng-click="event.delete()") Delete
+                        .scroll(style="height: calc(100% - 40px); overflow: auto;")
+                            .form-group.d-flex.p-3.pt-1.pb-1.bg-secondary
+                                h4 Package
+
+                            .form-group.row
+                                .col-3
+                                    label.form-label.col-form-label App ID
+                                .col
+                                    input.form-control.form-control-sm.form-control-round(type="text" ng-model="viewer.tabs.active_tab.data.package.id" placeholder="page.auth.login")
+
+                            .form-group.row
+                                .col-3
+                                    label.form-label.col-form-label Title
+                                .col
+                                    input.form-control.form-control-sm.form-control-round(type="text" ng-model="viewer.tabs.active_tab.data.package.title" placeholder="App Title")
+
+                            .form-group.row
+                                .col-3
+                                    label.form-label.col-form-label View URI
+                                .col
+                                    input.form-control.form-control-sm.form-control-round(type="text" ng-model="viewer.tabs.active_tab.data.package.viewuri" placeholder="/routename/path")
+                            
+                            .form-group.row
+                                .col-3
+                                    label.form-label.col-form-label Category
+                                .col.col-form-select
+                                    .form-selectgroup
+                                        label.form-selectgroup-item(ng-repeat="item in data.category")
+                                            input.form-selectgroup-input(type="radio" name="category" value="{{item.id}}" ng-model="viewer.tabs.active_tab.data.package.category")
+                                            span.form-selectgroup-label {{item.title}}
+                            
+                            .form-group.row
+                                .col-3
+                                    label.form-label.col-form-label Controller
+                                .col.col-form-select
+                                    .form-selectgroup
+                                        label.form-selectgroup-item(ng-repeat="item in data.controller")
+                                            input.form-selectgroup-input(type="radio" name="controller" value="{{item}}" ng-model="viewer.tabs.active_tab.data.package.controller")
+                                            span.form-selectgroup-label {{item ? item : 'Not use'}}
+
+                            .form-group.row
+                                .col-3
+                                    label.form-label.col-form-label Theme
+                                .col.col-form-select
+                                    .form-selectgroup
+                                        label.form-selectgroup-item.d-block(ng-repeat="item in data.theme")
+                                            input.form-selectgroup-input(type="radio" name="theme" value="{{item}}" ng-model="viewer.tabs.active_tab.data.package.theme")
+                                            span.form-selectgroup-label.d-block {{item ? item : 'Not use'}}
+                  
+                            .form-group.d-flex.p-3.pt-1.pb-1.bg-secondary
+                                h4 Dictionary
+
+                            .form-group.row
+                                .col-3
+                                    label.form-label.col-form-label Add Language
+                                .col
+                                    input.form-control.form-control-sm.form-control-round(type="text" ng-model="viewer.tabs.active_tab.dic.new" placeholder="en" ng-enter="viewer.tabs.active_tab.dic.create(viewer.tabs.active_tab.dic.new)")
+                                    
+                            .form-group.row
+                                .col-3
+                                    label.form-label.col-form-label List
+                                .col.col-form-select
+                                    .form-selectgroup
+                                        label.form-selectgroup-item(ng-repeat="item in viewer.tabs.active_tab.dic.list")
+                                            input.form-selectgroup-input(type="radio" name="lang-dic" value="{{item}}" ng-model="viewer.tabs.active_tab.dic.selected")
+                                            span.form-selectgroup-label {{ item }}
+                                            
+                            .form-group.d-flex.p-3.pt-1.pb-1.bg-secondary
+                                h4 Compiler
+                            
+                            .form-group.row
+                                .col-3
+                                    label.form-label.col-form-label HTML
+                                .col.col-form-select
+                                    .form-selectgroup
+                                        label.form-selectgroup-item(ng-repeat="item in data.lang.html")
+                                            input.form-selectgroup-input(type="radio" name="compiler_html" value="{{item}}" ng-model="viewer.tabs.active_tab.data.package.properties.html")
+                                            span.form-selectgroup-label {{ item }}
+                            
+                            .form-group.row
+                                .col-3
+                                    label.form-label.col-form-label CSS
+                                .col.col-form-select
+                                    .form-selectgroup
+                                        label.form-selectgroup-item(ng-repeat="item in data.lang.css")
+                                            input.form-selectgroup-input(type="radio" name="compiler_css" value="{{item}}" ng-model="viewer.tabs.active_tab.data.package.properties.css")
+                                            span.form-selectgroup-label {{ item }}
+                            
+                            
+                            .form-group.d-flex.p-3.pt-1.pb-1.bg-secondary(ng-if="!viewer.tabs.active_tab.new")
+                                h4 Delete
+                            .p-3(ng-if="!viewer.tabs.active_tab.new")
+                                .btn.btn-outline-danger.btn-block(ng-click="event.delete()") Delete
 
                     .route-info-area(ng-if="viewer.tabs.active_tab.mode == 'route'")
-                        .form-group.d-flex.p-3.pt-2.pb-2.bg-primary-lt
-                            h3(style="max-width: 220px; overflow: hidden; text-overflow: ellipsis;") {{viewer.tabs.active_tab.new ? 'new' : viewer.tabs.active_tab.data.package.title}}
-                            .ml-auto
+                        .form-group.d-flex.p-3.pt-2.pb-2.bg-primary-lt(style="height: 40px;")
+                            h3.nowrap(style="max-width: 220px; overflow: hidden; text-overflow: ellipsis;") 
+                                span.btn.btn-sm.btn-primary.btn-circle.mr-2 route
+                                span {{viewer.tabs.active_tab.new ? 'new' : viewer.tabs.active_tab.data.package.title}}
+                            .ml-auto(ng-if="!viewer.tabs.active_tab.new")
                                 button.btn.btn-primary.btn-circle.btn-sm(style="height: 24px; width: 24px;" ng-click="viewer.info.toggle()")
                                     i.fa-solid.fa-xmark
 
-                        .form-group.d-flex.p-3.pt-1.pb-1.bg-secondary
-                            h4 Package
+                        .scroll(style="height: calc(100% - 40px); overflow: auto;")
+                            .form-group.d-flex.p-3.pt-1.pb-1.bg-secondary
+                                h4 Package
 
-                        .form-group.row
-                            .col-3
-                                label.form-label.col-form-label App ID
-                            .col
-                                input.form-control.form-control-sm.form-control-round(type="text" ng-model="viewer.tabs.active_tab.data.package.id" placeholder="auth.login")
+                            .form-group.row
+                                .col-3
+                                    label.form-label.col-form-label App ID
+                                .col
+                                    input.form-control.form-control-sm.form-control-round(type="text" ng-model="viewer.tabs.active_tab.data.package.id" placeholder="auth.login")
 
-                        .form-group.row
-                            .col-3
-                                label.form-label.col-form-label Title
-                            .col
-                                input.form-control.form-control-sm.form-control-round(type="text" ng-model="viewer.tabs.active_tab.data.package.title" placeholder="App Title")
+                            .form-group.row
+                                .col-3
+                                    label.form-label.col-form-label Title
+                                .col
+                                    input.form-control.form-control-sm.form-control-round(type="text" ng-model="viewer.tabs.active_tab.data.package.title" placeholder="App Title")
 
-                        .form-group.row
-                            .col-3
-                                label.form-label.col-form-label Route
-                            .col
-                                input.form-control.form-control-sm.form-control-round(type="text" ng-model="viewer.tabs.active_tab.data.package.route" placeholder="/auth/<action>/<path:path>")
+                            .form-group.row
+                                .col-3
+                                    label.form-label.col-form-label Route
+                                .col
+                                    input.form-control.form-control-sm.form-control-round(type="text" ng-model="viewer.tabs.active_tab.data.package.route" placeholder="/auth/<action>/<path:path>")
 
-                        .form-group.row
-                            .col-3
-                                label.form-label.col-form-label View URI
-                            .col
-                                input.form-control.form-control-sm.form-control-round(type="text" ng-model="viewer.tabs.active_tab.data.package.viewuri" placeholder="/routename/path")
-                        
-                        .form-group.row
-                            .col-3
-                                label.form-label.col-form-label Controller
-                            .col.col-form-select
-                                .form-selectgroup
-                                    label.form-selectgroup-item(ng-repeat="item in data.controller")
-                                        input.form-selectgroup-input(type="radio" name="controller" value="{{item}}" ng-model="viewer.tabs.active_tab.data.package.controller")
-                                        span.form-selectgroup-label {{item ? item : 'Not use'}}
-                        
-                        .form-group.d-flex.p-3.pt-1.pb-1.bg-secondary(ng-if="!viewer.tabs.active_tab.new")
-                            h4 Delete
-                        .p-3(ng-if="!viewer.tabs.active_tab.new")
-                            .btn.btn-outline-danger.btn-block(ng-click="event.delete()") Delete
+                            .form-group.row
+                                .col-3
+                                    label.form-label.col-form-label View URI
+                                .col
+                                    input.form-control.form-control-sm.form-control-round(type="text" ng-model="viewer.tabs.active_tab.data.package.viewuri" placeholder="/routename/path")
+                            
+                            .form-group.row
+                                .col-3
+                                    label.form-label.col-form-label Controller
+                                .col.col-form-select
+                                    .form-selectgroup
+                                        label.form-selectgroup-item(ng-repeat="item in data.controller")
+                                            input.form-selectgroup-input(type="radio" name="controller" value="{{item}}" ng-model="viewer.tabs.active_tab.data.package.controller")
+                                            span.form-selectgroup-label {{item ? item : 'Not use'}}
+                            
+                            .form-group.d-flex.p-3.pt-1.pb-1.bg-secondary
+                                h4 Dictionary
+
+                            .form-group.row
+                                .col-3
+                                    label.form-label.col-form-label Add Language
+                                .col
+                                    input.form-control.form-control-sm.form-control-round(type="text" ng-model="viewer.tabs.active_tab.dic.new" placeholder="en" ng-enter="viewer.tabs.active_tab.dic.create(viewer.tabs.active_tab.dic.new)")
+                                    
+                            .form-group.row
+                                .col-3
+                                    label.form-label.col-form-label List
+                                .col.col-form-select
+                                    .form-selectgroup
+                                        label.form-selectgroup-item(ng-repeat="item in viewer.tabs.active_tab.dic.list")
+                                            input.form-selectgroup-input(type="radio" name="lang-dic" value="{{item}}" ng-model="viewer.tabs.active_tab.dic.selected")
+                                            span.form-selectgroup-label {{ item }}
+
+                            .form-group.d-flex.p-3.pt-1.pb-1.bg-secondary(ng-if="!viewer.tabs.active_tab.new")
+                                h4 Delete
+                            .p-3(ng-if="!viewer.tabs.active_tab.new")
+                                .btn.btn-outline-danger.btn-block(ng-click="event.delete()") Delete
 
                 .editor-area(style="width: calc(100% - {{ viewer.info.show ? '322px' : '42px' }}) !important;")
                     .code-editor
                         .editor-tabs
                             .editor-tab-container(ui-sortable='data.sortable' ng-model="viewer.tabs.data")
-                                .editor-tab-editor-container(ng-repeat="tab in viewer.tabs.data" ng-click="tab.activate()" class="{{viewer.tabs.active_tab.id == tab.id ? 'active' : 'inactive'}}")
+                                .editor-tab-editor-container(id='{{tab.id}}' ng-repeat="tab in viewer.tabs.data" ng-click="tab.activate()" class="{{viewer.tabs.active_tab.id == tab.id ? 'active' : 'inactive'}}")
                                     
                                     //- app editor
                                     .monaco-area(ng-if="tab.mode == 'app'" style="height: {{ viewer.debug.show ? 'calc(100vh - 420px)' : '100%' }} !important;")
                                         .draggable.code-title.bg-primary.d-flex
                                             .pl-2(style="max-width: 80%;")
-                                                .nowrap 
+                                                .nowrap(ng-if="tab.new")
+                                                    span [app] new
+                                                .nowrap(ng-if="!tab.new")
                                                     span [app] {{tab.data.package.title}} 
                                                     small ({{tab.data.package.id}})
                                             .ml-auto
@@ -316,16 +449,22 @@
                                             a.btn.btn-square.btn-sm.p-2(ng-click="tab.code.select('js')" class="{{tab.code.target == 'js' ? 'text-dark' : 'bg-primary'}}") JS
                                             a.btn.btn-square.btn-sm.p-2(ng-click="tab.code.select('css')" class="{{tab.code.target == 'css' ? 'text-dark' : 'bg-primary'}}") CSS
                                             a.btn.btn-square.btn-sm.p-2(ng-click="tab.code.select('dic')" class="{{tab.code.target == 'dic' ? 'text-dark' : 'bg-primary'}}") Dic
+                                                span(ng-if="tab.dic.selected != 'default'") ({{tab.dic.selected}})
                                             a.btn.btn-square.btn-sm.p-2(ng-click="tab.code.select('preview')" class="{{tab.code.target == 'preview' ? 'text-dark' : 'bg-primary'}}") Preview
 
                                         .monaco-editor-container(ng-if="tab.show")
                                             div(ng-if="!['preview', 'dic'].includes(tab.code.target)" ng-model="tab.data[tab.code.target]" ui-monaco-opts="tab.monaco" ui-monaco)
-
+                                            div(ng-if="tab.code.target == 'preview'")
+                                                iframe.preview(style="width: 100%; height: 100%;" ng-src="{{tab.data.package.viewuri ? tab.data.package.viewuri : '{$ wiz.url('ui/workspace/preview/app') $}/' + tab.data.package.id}}")
+                                            div(ng-if="tab.code.target == 'dic'" ng-model="tab.dic.data[tab.dic.selected]" ui-monaco-opts="tab.dic.monaco" ui-monaco)
+                                            
                                     //- route editor
                                     .monaco-area(ng-if="tab.mode == 'route'" style="height: {{ viewer.debug.show ? 'calc(100vh - 420px)' : '100%' }} !important;")
                                         .draggable.code-title.bg-primary.d-flex
                                             .pl-2(style="max-width: 80%;")
-                                                .nowrap 
+                                                .nowrap(ng-if="tab.new")
+                                                    span [route] new
+                                                .nowrap(ng-if="!tab.new")
                                                     span [route] {{tab.data.package.title}} 
                                                     small ({{tab.data.package.id}})
                                             .ml-auto
@@ -335,13 +474,56 @@
                                         .code-select.bg-primary.d-flex
                                             a.btn.btn-square.btn-sm.p-2(ng-click="tab.code.select('controller')" class="{{tab.code.target == 'controller' ? 'text-dark' : 'bg-primary'}}") Controller
                                             a.btn.btn-square.btn-sm.p-2(ng-click="tab.code.select('dic')" class="{{tab.code.target == 'dic' ? 'text-dark' : 'bg-primary'}}") Dic
+                                                span(ng-if="tab.dic.selected != 'default'") ({{tab.dic.selected}})
                                             a.btn.btn-square.btn-sm.p-2(ng-click="tab.code.select('preview')" class="{{tab.code.target == 'preview' ? 'text-dark' : 'bg-primary'}}") Preview
 
                                         .monaco-editor-container(ng-if="tab.show")
                                             div(ng-if="!['preview', 'dic'].includes(tab.code.target)" ng-model="tab.data[tab.code.target]" ui-monaco-opts="tab.monaco" ui-monaco)
+                                            div(ng-if="tab.code.target == 'preview'")
+                                                iframe.preview(ng-if="tab.data.package.viewuri" style="width: 100%; height: 100%;" ng-src="{{tab.data.package.viewuri}}")
+                                                .p-4.bg-primary-lt.text-center(style="width: 100%; height: 100%") Set view uri
+                                            div(ng-if="tab.code.target == 'dic'" ng-model="tab.dic.data[tab.dic.selected]" ui-monaco-opts="tab.dic.monaco" ui-monaco)
 
                                     //- file editor
-                                       
+                                    .monaco-area(ng-if="['model', 'controller', 'resources', 'themes'].includes(tab.mode)" style="height: {{ viewer.debug.show ? 'calc(100vh - 420px)' : '100%' }} !important;")
+                                        .draggable.code-title.bg-primary.d-flex
+                                            .pl-2(style="max-width: 80%;")
+                                                .nowrap(ng-if="!tab.new")
+                                                    span [{{tab.mode}}] {{tab.data.name}} 
+                                            .ml-auto
+                                            a.btn.btn-square.btn-sm.btn-primary.p-2(ng-click="viewer.tabs.remove(tab)")
+                                                i.fa-solid.fa-xmark
+
+                                        .monaco-editor-container.monaco-editor-container-files(ng-if="tab.data.data.type == 'code'")
+                                            div(ng-model="tab.data.data.data" ui-monaco-opts="tab.monaco" ui-monaco)
+
+                                        .monaco-editor-container.monaco-editor-container-files(ng-if="tab.data.data.type == 'image'")
+                                            .image-container
+                                                img(ng-src="{{tab.data.data.data}}")
+                                
+                                .editor-tab-editor-container(ng-if="viewer.shortcut.show" style="width: 320px;")
+                                    .d-flex.p-3.pt-2.pb-2.bg-primary-lt
+                                        h3.nowrap.m-0(style="max-width: 220px; overflow: hidden; text-overflow: ellipsis;") 
+                                            span Shortcuts
+
+                                        .ml-auto(ng-if="!viewer.tabs.active_tab.new")
+                                            button.btn.btn-primary.btn-circle.btn-sm(style="height: 24px; width: 24px;" ng-click="viewer.shortcut.toggle()")
+                                                i.fa-solid.fa-xmark
+                                    
+                                    .scroll(style="height: calc(100% - 40px); overflow: auto;")
+                                        table.table.table-hover.table-bordered.table-shortcut.mb-0
+                                            tr(ng-repeat="item in shortcut.list")
+                                                th 
+                                                    .text(style="display: inline-block;" ng-repeat="key in item.key.split(' ') track by $index")
+                                                        small.p-1.bg-primary(ng-if="!['Ctrl', 'ArrowRight', 'ArrowLeft'].includes(key)") {{key.replace('Digit', '').replace('Key', '').toLowerCase()}}
+                                                        small.p-1.bg-primary(ng-if="'Ctrl' == key") {{ismac ? 'cmd' : 'ctrl'}}
+                                                        small.p-1.bg-primary(ng-if="'ArrowRight' == key")
+                                                            i.fa-solid.fa-arrow-right
+                                                        small.p-1.bg-primary(ng-if="'ArrowLeft' == key")
+                                                            i.fa-solid.fa-arrow-left
+                                                        small.text-muted(style="margin: 0 2px; font-size: 12px;" ng-if="$index + 1 != item.key.split(' ').length") + 
+                                                td {{item.desc}}
+
                         .editor-debug(ng-if="viewer.debug.show")
                             .code-select.bg-primary.d-flex(style="margin-top: -2px;")
                                 a.btn.btn-square.btn-sm.p-2.text-dark DEBUG
@@ -367,7 +549,7 @@
                     .mt-auto
 
                     .d-block
-                        .btn.btn-white(ng-click="")
+                        .btn.btn-white(ng-click="viewer.shortcut.toggle()" class="{{viewer.shortcut.show ? 'btn-primary' : 'btn-white'}}")
                             i.fa-solid.fa-keyboard
 
     {$ wiz.render("modal.message") $}
