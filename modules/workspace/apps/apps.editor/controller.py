@@ -1,6 +1,7 @@
 import os
 import season
 
+kwargs['branch'] = wiz.branch()
 kwargs['category'] = wiz.server.config.wiz.category
 kwargs['theme'] = [""] + wiz.src.theme.list()
 

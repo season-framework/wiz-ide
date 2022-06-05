@@ -45,6 +45,7 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
         return opt;
     }
 
+    $scope.trustAsHtml = $sce.trustAsHtml;
     $scope.display = {};
     $scope.display.date = function (date) {
         let targetdate = moment(date);
@@ -518,7 +519,7 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
 
     $scope.viewer.debug = (function () {
         let obj = {};
-        obj.show = false;
+        obj.show = true;
         obj.toggle = async () => {
             if (obj.show) {
                 obj.show = false;
@@ -586,6 +587,7 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
             obj.show = false;
             await $timeout();
             obj.code.target = target;
+            $scope.viewer.tabs.lastcode.app = target;
 
             if (target != 'dic' && target != 'preview') {
                 let map = { controller: 'python', api: 'python', socketio: 'python', css: obj.data.package.properties.css, html: obj.data.package.properties.html, js: 'javascript' };
@@ -654,6 +656,7 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
             obj.show = false;
             await $timeout();
             obj.code.target = target;
+            $scope.viewer.tabs.lastcode.route = target;
 
             if (target != 'dic' && target != 'preview') {
                 let map = { controller: 'python' };
@@ -758,12 +761,16 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
             }
         }
 
+        obj.lastcode = {};
+        obj.lastcode.app = 'controller';
+        obj.lastcode.route = 'controller';
+
         obj.add = async (mode, target, location) => {
             let tab = null;
             if (mode == 'app') {
-                tab = await tab_generator.app(target, 'controller');
+                tab = await tab_generator.app(target, obj.lastcode.app);
             } else if (mode == 'route') {
-                tab = await tab_generator.route(target, 'controller');
+                tab = await tab_generator.route(target, obj.lastcode.route);
             } else {
                 if (!target) {
                     let path = $scope.data.files[mode].path;
@@ -894,7 +901,7 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
                 desc: 'clear dubug log',
                 monaco: monaco.KeyMod.CtrlCmd | monaco.KeyCode.KEY_K,
                 fn: async () => {
-                    // await $scope.socket.clear();
+                    await $scope.socket.clear();
                 }
             },
             'info': {
@@ -1109,4 +1116,52 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
 
     await $scope.shortcut.bind();
     window.onbeforeunload = () => "";
+
+    /*
+         * socket.io event binding for trace log
+         */
+    let ansi_up = new AnsiUp();
+    let socket = io("/wiz");
+
+    $scope.socket = {};
+    $scope.socket.log = "";
+    $scope.socket.clear = async () => {
+        $scope.socket.log = "";
+        await $timeout();
+    }
+
+    $scope.socket.link = async () => {
+        // TODO: open debug window
+        // window.open("/wiz/admin/workspace/logger", '_blank');
+    }
+
+    socket.on("connect", async () => {
+        if ($scope.viewer.debug.show)
+            socket.emit("join", { id: wiz.data.branch });
+    });
+
+    socket.on("log", async (data) => {
+        data = ansi_up.ansi_to_html(data).replace(/\n/gim, '<br>');
+        $scope.socket.log = $scope.socket.log + data;
+
+        let logs = $scope.socket.log.split("<br>");
+        let maxsize = 1000;
+        if (logs.length > maxsize) {
+            logs = logs.splice(logs.length - maxsize, maxsize);
+            $scope.socket.log = logs.join("<br>");
+        }
+
+        await $timeout(200);
+        let element = $('.debug-messages')[0];
+        if (!element) return;
+        element.scrollTop = element.scrollHeight - element.clientHeight;
+    });
+
+    $scope.$watch("viewer.debug.show", async () => {
+        if ($scope.viewer.debug.show) {
+            socket.emit("join", { id: wiz.data.branch });
+        } else {
+            socket.emit("leave", { id: wiz.data.branch });
+        }
+    }, true);
 }
