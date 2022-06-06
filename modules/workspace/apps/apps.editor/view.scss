@@ -274,7 +274,6 @@ $radius: 24px;
 
     .editor-tabs {
         flex: auto;
-        height: 60%;
 
         .editor-tab-container {
             display: table;
@@ -316,7 +315,7 @@ $radius: 24px;
 
                     .monaco-editor-container {
                         height: calc(100vh - 116px);
-                        max-height: 100%;
+                        max-height: calc(100% - 57px);
                         overflow: hidden;
 
                         > div {
@@ -326,12 +325,12 @@ $radius: 24px;
 
                     .monaco-editor-container-files {
                         height: calc(100vh - 88px);
-                        max-height: 100%;
-                        overflow: auto;
+                        max-height: calc(100% - 29px);
 
                         .image-container {
                             width: 100%;
                             height: 100%;
+                            overflow: auto;
                             background: var(--wiz-color-primary-lt);
                             text-align: center;
                         }
@@ -342,7 +341,7 @@ $radius: 24px;
     }
 
     .editor-debug {
-        height: 360px;
+        height: 40vh;
     }
 
     .split-pane {

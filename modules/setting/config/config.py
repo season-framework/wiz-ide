@@ -1,7 +1,6 @@
 from season import stdClass
 
-config = stdClass()
-config.menu = [
+menu = [
     {"type": "header", "title": "Settings"},
     {"title": "System Status", "url": "/system", "icon": "fa-solid fa-heart-pulse"},
     {"title": "Configuration", "url": "/config", "icon": "fa-solid fa-wrench"},

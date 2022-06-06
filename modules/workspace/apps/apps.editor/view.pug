@@ -78,6 +78,15 @@
                                             i.fa-solid.fa-folder-tree
                                         .d-block
                                             .nav-link-title Resources
+                        
+                        li.nav-item
+                            .row.m-0.p-0
+                                .col.m-0.p-0
+                                    a.nav-link(ng-click="event.load('config')")
+                                        span.mr-2(style="width: 20px; text-align: center;")
+                                            i.fa-solid.fa-gear
+                                        .d-block
+                                            .nav-link-title Config
 
                 .list-container(ng-if="viewer.list.view == 'list'")
                     ul.navbar-nav(ng-repeat="category in data.category" ng-if="data.apps[category.id].length > 0 && viewer.list.mode == 'app'")
@@ -118,7 +127,7 @@
                                 .nav-item-status.col-auto.align-self-center.m-0.p-0.mr-2
                                     i.fa-solid.fa-circle
 
-                    ul.navbar-nav(ng-if="['controller', 'model', 'themes', 'resources'].includes(viewer.list.mode)")
+                    ul.navbar-nav(ng-if="['controller', 'model', 'themes', 'resources', 'config'].includes(viewer.list.mode)")
                         li.nav-item.nav-item-header
                             .text-left
                                 span {{viewer.list.mode}}/{{data.files[viewer.list.mode].path}}
@@ -189,18 +198,18 @@
                             - else
                                 a.btn.btn-primary.mr-1(href="?dev=false{{'#' + data.hash_id}}") develop
                             
-                            a.btn.btn-primary.mr-1(ng-click="")
-                                i.fa-solid.fa-cloud-arrow-down
+                            //- a.btn.btn-primary.mr-1(ng-click="")
+                            //-     i.fa-solid.fa-cloud-arrow-down
 
-                            a.btn.btn-primary.mr-1(ng-click="")
-                                i.fa-solid.fa-cloud-arrow-up
+                            //- a.btn.btn-primary.mr-1(ng-click="")
+                            //-     i.fa-solid.fa-cloud-arrow-up
 
                             a.btn.btn-primary.mr-1(ng-click="viewer.tabs.add(viewer.tabs.active_tab.mode == 'route' ? 'route' : 'app', 'new')")
                                 i.fa-solid.fa-plus
 
-                            a.btn.btn-primary.mr-1(ng-click="") Clean
+                            a.btn.btn-primary.mr-1(ng-click="event.clean()") Clean
                             
-                            a.btn.btn-primary.mr-1(ng-click="") Save
+                            a.btn.btn-primary.mr-1(ng-click="event.save()") Save
 
                             a.btn.btn-primary(href="{$ wiz.url('ui/workspace/') $}{{viewer.list.mode == 'route' ? 'routes' : 'apps' }}")
                                 i.fa-solid.fa-xmark
@@ -424,12 +433,12 @@
 
                 .editor-area(style="width: calc(100% - {{ viewer.info.show ? '322px' : '42px' }}) !important;")
                     .code-editor
-                        .editor-tabs
+                        .editor-tabs(style="height: {{ viewer.debug.show ? 'calc(60vh - 60px)' : '100%' }} !important;")
                             .editor-tab-container(ui-sortable='data.sortable' ng-model="viewer.tabs.data")
                                 .editor-tab-editor-container(id='{{tab.id}}' ng-repeat="tab in viewer.tabs.data" ng-click="tab.activate()" class="{{viewer.tabs.active_tab.id == tab.id ? 'active' : 'inactive'}}")
                                     
                                     //- app editor
-                                    .monaco-area(ng-if="tab.mode == 'app'" style="height: {{ viewer.debug.show ? 'calc(100vh - 420px)' : '100%' }} !important;")
+                                    .monaco-area(ng-if="tab.mode == 'app'" style="height: {{ viewer.debug.show ? 'calc(60vh - 60px)' : '100%' }} !important;")
                                         .draggable.code-title.bg-primary.d-flex
                                             .pl-2(style="max-width: 80%;")
                                                 .nowrap(ng-if="tab.new")
@@ -459,7 +468,7 @@
                                             div(ng-if="tab.code.target == 'dic'" ng-model="tab.dic.data[tab.dic.selected]" ui-monaco-opts="tab.dic.monaco" ui-monaco)
                                             
                                     //- route editor
-                                    .monaco-area(ng-if="tab.mode == 'route'" style="height: {{ viewer.debug.show ? 'calc(100vh - 420px)' : '100%' }} !important;")
+                                    .monaco-area(ng-if="tab.mode == 'route'" style="height: {{ viewer.debug.show ? 'calc(60vh - 60px)' : '100%' }} !important;")
                                         .draggable.code-title.bg-primary.d-flex
                                             .pl-2(style="max-width: 80%;")
                                                 .nowrap(ng-if="tab.new")
@@ -485,7 +494,7 @@
                                             div(ng-if="tab.code.target == 'dic'" ng-model="tab.dic.data[tab.dic.selected]" ui-monaco-opts="tab.dic.monaco" ui-monaco)
 
                                     //- file editor
-                                    .monaco-area(ng-if="['model', 'controller', 'resources', 'themes'].includes(tab.mode)" style="height: {{ viewer.debug.show ? 'calc(100vh - 420px)' : '100%' }} !important;")
+                                    .monaco-area(ng-if="['model', 'controller', 'resources', 'themes', 'config'].includes(tab.mode)" style="height: {{ viewer.debug.show ? 'calc(60vh - 60px)' : '100%' }} !important;")
                                         .draggable.code-title.bg-primary.d-flex
                                             .pl-2(style="max-width: 80%;")
                                                 .nowrap(ng-if="!tab.new")
@@ -528,8 +537,11 @@
                             .code-select.bg-primary.d-flex(style="margin-top: -2px;")
                                 a.btn.btn-square.btn-sm.p-2.text-dark DEBUG
                                 a.btn.btn-square.btn-primary.btn-sm.p-2.ml-auto(ng-click="socket.clear()") CLEAR
+                                a.btn.btn-square.btn-primary.btn-sm.p-2(ng-click="socket.link()")
+                                    i.fa-solid.fa-arrow-up-right-from-square
                                 a.btn.btn-square.btn-primary.btn-sm.p-2(ng-click="viewer.debug.toggle()")
                                     i.fa-solid.fa-xmark
+
                             div(style="height: calc(100% - 33px);")
                                 .debug-messages(style="overflow: auto; max-width: none; width: 100%; height: 100%; background: #000; color: #fff; padding: 8px; line-height: 1;" ng-bind-html="trustAsHtml(socket.log)")
 

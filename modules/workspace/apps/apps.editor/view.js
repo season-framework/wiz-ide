@@ -95,6 +95,7 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
     $scope.data.files.model = {};
     $scope.data.files.themes = {};
     $scope.data.files.resources = {};
+    $scope.data.files.config = {};
 
     // cache binding
     $scope.cache = {};
@@ -258,7 +259,7 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
 
         // remove deleted tabs
         for (let i = 0; i < removes.length; i++) {
-            $scope.viewer.tabs.data.remove(removes[i]);
+            $scope.viewer.tabs.remove(removes[i]);
         }
 
         // activate remained tab
@@ -275,6 +276,11 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
     }
 
     // save
+    $scope.event.clean = async () => {
+        await wiz.API.async("clean");
+        toastr.success("cache deleted")
+    }
+
     $scope.event.save = async () => {
         let mode = $scope.viewer.tabs.active_tab.mode;
         let data = angular.copy($scope.viewer.tabs.active_tab.data);
@@ -311,7 +317,7 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
                 $scope.viewer.tabs.active_tab.org_app_id = data.package.id;
                 $scope.viewer.tabs.active_tab.app_id = data.package.id;
                 delete $scope.viewer.tabs.active_tab.new;
-                $scope.cache.apps[data.package.id] = $scope.viewer.tabs.active_tab.data;
+                $scope.viewer.tabs.active_tab.data = await $scope.event.get.app(data.package.id);
             } else {
                 if (data.package.id != org_app_id) {
                     let res = await wiz.API.async("app_rename", { app_id: org_app_id, rename: data.package.id });
@@ -363,7 +369,7 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
                 $scope.viewer.tabs.active_tab.org_app_id = data.package.id;
                 $scope.viewer.tabs.active_tab.app_id = data.package.id;
                 delete $scope.viewer.tabs.active_tab.new;
-                $scope.cache.apps[data.package.id] = $scope.viewer.tabs.active_tab.data;
+                $scope.viewer.tabs.active_tab.data = await $scope.event.get.route(data.package.id);
                 await $scope.event.load('route');
             } else {
                 if (data.package.id != org_app_id) {
@@ -1131,8 +1137,9 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
     }
 
     $scope.socket.link = async () => {
-        // TODO: open debug window
-        // window.open("/wiz/admin/workspace/logger", '_blank');
+        $scope.viewer.debug.show = false;
+        await $timeout();
+        window.open(wiz.url + "/ui/workspace/debug", '_blank');
     }
 
     socket.on("connect", async () => {

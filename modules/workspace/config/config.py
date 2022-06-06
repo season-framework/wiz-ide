@@ -1,7 +1,4 @@
-from season import stdClass
-
-config = stdClass()
-config.menu = [
+menu = [
     {"type": "header", "title": "Workspace"},
     {"title": "Route", "url": "/routes", "icon": "fa-solid fa-link"},
     {"title": "Apps", "url": "/apps", "icon": "fa-solid fa-cubes"},

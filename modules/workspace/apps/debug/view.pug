@@ -1,0 +1,28 @@
+.page
+    .workspace-area
+        .workspace-list-header
+            .page-header.d-print-none
+                .row.align-items-center
+                    .col-auto
+                        span.status-indicator.status-indicator-animated.status-primary
+                            span.status-indicator-circle
+                            span.status-indicator-circle
+                            span.status-indicator-circle
+
+                    .col(style="line-height: 1;")
+                        h2.page-title Debug Logs
+                            
+                    .col-auto.actions.mr-1
+                        .dropdown
+                            button.btn.btn-secondary.dropdown-toggle(type="button" data-bs-toggle="dropdown" aria-expanded="false")= branch
+                            ul.dropdown-menu
+                                - each item in branches
+                                    li
+                                        a.dropdown-item(href="?target={$ item $}")= item
+
+                    .col-auto.actions
+                        a.btn.btn-primary.mr-1(ng-click="socket.clear()") Clear
+
+        .workspace-list-item
+            .editor-debug
+                .debug-messages(style="overflow: auto; max-width: none; width: 100%; height: 100%; background: #000; color: #fff; padding: 8px; line-height: 1;" ng-bind-html="trustAsHtml(socket.log)")

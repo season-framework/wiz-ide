@@ -7,6 +7,13 @@ import time
 import datetime
 import shutil
 
+def clean():
+    wiz.server.config.clean()
+    season.cache = season.stdClass()
+    fs = season.util.os.FileSystem(os.path.join(season.path.project, 'cache'))
+    fs.remove()
+    wiz.response.status(200)
+
 def list():
     mode = wiz.request.query("mode", 'app')
     if mode == 'app':
