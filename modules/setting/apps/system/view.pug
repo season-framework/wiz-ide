@@ -1,0 +1,96 @@
+.workspace-list
+    .workspace-list-header
+        .page-header.d-print-none
+            .row.align-items-center
+                .col-auto
+                    span.status-indicator.status-indicator-animated.status-primary
+                        span.status-indicator-circle
+                        span.status-indicator-circle
+                        span.status-indicator-circle
+
+                .col(style="line-height: 1;")
+                    h2.page-title System Status
+    
+    .workspace-container
+        .container.pt-4
+            .row.row-deck.row-card
+                .col-md-4
+                    .info-box
+                        h3.mb-4 Deployment
+                        table
+                            tr
+                                td.title.w-1 WIZ Version
+                                td.spare
+                                td.w-1 {{data.deploy.wiz_version}}
+
+                        table
+                            tr
+                                td.title.w-1 Python Version
+                                td.spare
+                                td.w-1 {{data.deploy.python_version}}
+
+                        table
+                            tr
+                                td.title.w-1 PID
+                                td.spare
+                                td.w-1 {{data.deploy.pid}}
+
+                        table
+                            tr
+                                td.title.w-1 Uptime
+                                td.spare
+                                td.w-1 {{timer(data.system.started)}}
+
+                .col-md-4
+                    .info-box
+                        h3.mb-4 System Usage
+                        
+                        table
+                            tr
+                                td.title.w-1 CPU
+                                td.spare
+                                td.w-1
+                                    span {{ data.system.cpu.dizest_usage | number:2 }} %
+
+                        table
+                            tr
+                                td.title.w-1 Process
+                                td.spare
+                                td.w-1
+                                    span {{ data.process.children.length}}
+                        
+                        table
+                            tr
+                                td.title.w-1 Memory
+                                td.spare
+                                td.w-1
+                                    span {{ data.system.memory.dizest_usage / 1024 / 1024 / 1024 | number:2 }}
+                                    span.mr-1.ml-1 /
+                                    span {{ data.system.memory.total / 1024 / 1024 / 1024 | number:2 }} GB
+                        
+                        table
+                            tr
+                                td.title.w-1 Disk
+                                td.spare
+                                td.w-1
+                                    span {{ data.system.disk.used / 1024 / 1024 / 1024 | number:0 }}
+                                    span.mr-1.ml-1 /
+                                    span {{ data.system.disk.total / 1024 / 1024 / 1024 | number:0 }} GB
+
+                .col-md-4
+                    .info-box.process-list
+                        table.table.table-hover.table-vcenter.card-table
+                            thead
+                                tr
+                                    th.w-1 PID
+                                    th.w-1 Parent
+                                    th CMD
+                                    th.w-1 Status
+                                    th.w-1 Uptime
+                            tbody
+                                tr(ng-repeat="item in data.process.children")
+                                    td.w-1.text-center.pr-2.pl-2.pt-1.pb-1 {{item.pid}} 
+                                    td.w-1.text-center.pr-2.pl-2.pt-1.pb-1 {{item.parent}}
+                                    td.text-left.pr-2.pl-2.pt-1.pb-1 {{item.cmd}}
+                                    td.w-1.text-left.pr-2.pl-2.pt-1.pb-1 {{item.status}}
+                                    td.w-1.text-right.pr-2.pl-2.pt-1.pb-1 {{timer(item.time)}}

@@ -8,7 +8,7 @@ import datetime
 import shutil
 
 def clean():
-    wiz.server.config.clean()
+    wiz.server.config.reload()
     season.cache = season.stdClass()
     fs = season.util.os.FileSystem(os.path.join(season.path.project, 'cache'))
     fs.remove()

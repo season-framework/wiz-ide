@@ -1,0 +1,60 @@
+.workspace-list
+    .workspace-list-header
+        .page-header.d-print-none
+            .row.align-items-center
+                .col-auto
+                    span.status-indicator.status-indicator-animated.status-primary
+                        span.status-indicator-circle
+                        span.status-indicator-circle
+                        span.status-indicator-circle
+
+                .col(style="line-height: 1;")
+                    h2.page-title WIZ Settings
+                
+                .col-auto.actions
+                    .btn.btn-primary(ng-click="update()")
+                        i.fa-solid.fa-save.mr-2
+                        span Save
+    
+    .workspace-container
+        .side-menu
+            ul.navbar-nav
+                li.nav-item(class="{{target == 'server' ? 'active' : ''}}")
+                    .row.m-0.p-0
+                        .col.m-0.p-0
+                            a.nav-link(ng-click="load('server')")
+                                span.mr-2(style="width: 20px; text-align: center;")
+                                    i.fa-solid.fa-server
+                                .d-block
+                                    .nav-link-title Server
+                        .nav-item-status.col-auto.align-self-center.m-0.p-0.mr-2
+                            i.fa-solid.fa-circle
+
+                li.nav-item(class="{{target == 'socketio' ? 'active' : ''}}")
+                    .row.m-0.p-0
+                        .col.m-0.p-0
+                            a.nav-link(ng-click="load('socketio')")
+                                span.mr-2(style="width: 20px; text-align: center;")
+                                    i.fa-brands.fa-rocketchat
+                                .d-block
+                                    .nav-link-title SocketIO
+                        .nav-item-status.col-auto.align-self-center.m-0.p-0.mr-2
+                            i.fa-solid.fa-circle
+
+                li.nav-item(class="{{target == 'wiz' ? 'active' : ''}}")
+                    .row.m-0.p-0
+                        .col.m-0.p-0
+                            a.nav-link(ng-click="load('wiz')")
+                                span.mr-2(style="width: 20px; text-align: center;")
+                                    i.fa-solid.fa-wand-magic-sparkles
+                                .d-block
+                                    .nav-link-title WIZ
+                        .nav-item-status.col-auto.align-self-center.m-0.p-0.mr-2
+                            i.fa-solid.fa-circle
+
+        .main-context
+            .d-flex.navigation(style="padding-left: 12px;")                
+                .navigate-path {{target}}
+    
+            .code-editor
+                div(ng-model="data" ui-monaco-opts="monaco" ui-monaco)

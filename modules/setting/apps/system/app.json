@@ -1,0 +1,14 @@
+{
+    "id": "system",
+    "title": "system",
+    "properties": {
+        "html": "pug",
+        "js": "javascript",
+        "css": "scss"
+    },
+    "viewuri": "/system",
+    "created": "2022-04-27 15:42:48",
+    "updated": "2022-05-23 21:22:26",
+    "controller": "",
+    "theme": "base"
+}
