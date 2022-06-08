@@ -1,0 +1,1 @@
+wiz.response.render("/browser/themes", "file.browser", target="themes", title="Themes", description="Theme for apps: wiz.theme('themename').layout('layoutname').view('view.pug')")

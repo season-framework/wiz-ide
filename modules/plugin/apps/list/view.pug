@@ -15,23 +15,29 @@
                             li.list-inline-item Installed plugins
                 
                 .col-2
-                    input.form-control(type="text" placeholder="Search..." ng-model="search.text" ng-change="event.search(search.text)")
+                    input.form-control(type="text" placeholder="search title or id" ng-model="search.text" ng-change="event.search(search.text)")
                 
                 .col-auto.actions
-                    a.btn.btn-primary(href="{$ wiz.url('ui/setting/ide') + '#route/new' $}")
+                    a.btn.btn-primary(ng-click="event.new('{$ wiz.url('ui/plugin/ide/') $}', search.text)")
                         i.fa-solid.fa-plus
     
     .workflow-list-item
         .container.pt-4
-            table.table.table-hover.text-left
-                thead
-                    tr.bg-primary
-                        th.w-1.text-left ID
-                        th.text-left PLUGIN
+            .row.row-deck.row-cards
+                .col-md-3.p-3(ng-repeat="item in data" ng-if="!item.hide")
+                    .card.card-hover(ng-click="link('{$ wiz.url('ui/plugin/ide/') $}' + item.id)")
+                        .card-body.p-0
+                            .img-responsive(style="position: relative; background-image: url('{{item.featured}}')")
+                                svg(viewBox="0 0 16 9")
+                                    rect(width="16" height="12" style="fill:rgba(255,255,255,0);")
 
-                tbody
-                    tr(ng-repeat="item in data" ng-if="!item.hide")
-                        td.w-1.text-left 
-                            a(href="{$ wiz.url('ui/plugin/ide/') $}{{item.id}}") {{item.id}}
-                        td.text-left 
-                            a(href="{$ wiz.url('ui/plugin/ide/') $}{{item.id}}") {{item.name}}
+                        .card-footer.d-flex(style="align-items: center;")
+                            .avatar-area.avatar-area-sm.mr-3
+                                .avatar-container
+                                    span.avatar(style="background-image: url({{item.logo}})")
+                            .text-area
+                                h3.card-title.mb-0
+                                    .text-reset(style="white-space: normal; word-break: break-all;") {{item.name}}
+                                .text-muted {{item.id}}
+
+    {$ wiz.render("modal.message") $}

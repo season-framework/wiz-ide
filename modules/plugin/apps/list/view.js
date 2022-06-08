@@ -2,6 +2,22 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
     let _$timeout = $timeout;
     $timeout = (timestamp) => new Promise((resolve) => _$timeout(resolve, timestamp));
 
+    let alert = async (message) => {
+        await wiz.connect("modal.message")
+            .data({
+                title: "Alert",
+                message: message,
+                btn_action: "Close",
+                btn_class: "btn-primary"
+            })
+            .event("modal-show");
+    }
+
+
+    $scope.link = async (link) => {
+        location.href = link;
+    }
+
     $scope.datedisplay = function (date) {
         let targetdate = moment(date);
         let diff = new Date().getTime() - new Date(targetdate).getTime();
@@ -53,6 +69,14 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
         }
 
         await $timeout();
+    }
+
+    $scope.event.new = async (baseurl, text) => {
+        if (!(/^[a-zA-Z0-9()]+$/.test(text)) || text.length < 3) {
+            alert("Doesn't match the plugin's id rules");
+            return;
+        }
+        location.href = baseurl + text + "#route/new";
     }
 
     await $scope.event.load();

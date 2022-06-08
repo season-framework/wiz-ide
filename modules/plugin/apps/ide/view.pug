@@ -80,7 +80,7 @@
                                             .nav-link-title Config
 
                 .list-container(ng-if="viewer.list.view == 'list'")
-                    ul.navbar-nav(ng-if="data.apps.length > 0 && viewer.list.mode == 'app'")                        
+                    ul.navbar-nav(ng-if="data.apps.length > 0 && viewer.list.mode == 'app'")
                         li.nav-item(ng-repeat="item in data.apps" ng-if="!item.hide" class="{{viewer.tabs.active_tab.mode == viewer.list.mode && viewer.tabs.active_tab.org_app_id == item.package.id ? 'active' : ''}}")
                             .row.m-0.p-0
                                 .col.m-0.p-0
@@ -170,14 +170,6 @@
                                     li.list-inline-item {{viewer.tabs.active_tab.mode}} 
                                         small.pr-2.pl-2.bg-primary-lt(ng-if="viewer.tabs.active_tab.data.package.title") {{viewer.tabs.active_tab.data.package.title}}
 
-                        .col-auto.actions.mr-1
-                            .dropdown
-                                button.btn.btn-secondary.dropdown-toggle(type="button" data-bs-toggle="dropdown" aria-expanded="false")= branch
-                                ul.dropdown-menu
-                                    - each item in branches
-                                        li
-                                            a.dropdown-item(href="?branch={$ item $}{{'#' + data.hash_id}}")= item
-
                         .col-auto.actions.if-desktop
                             - if is_dev == False
                                 a.btn.btn-white.mr-1(href="?dev=true{{'#' + data.hash_id}}") product
@@ -189,11 +181,13 @@
 
                             a.btn.btn-primary.mr-1(ng-click="event.clean()") Clean
                             
+                            a.btn.btn-primary.mr-1(ng-click="viewer.plugin.show()") Plugin Info
+                            
                             a.btn.btn-primary.mr-1(ng-click="event.save()") Save
 
                             a.btn.btn-primary(href="{$ wiz.url('ui/plugin/list') $}")
                                 i.fa-solid.fa-xmark
-            
+
             .workspace-list-item
                 .info-area(ng-if="viewer.info.show && viewer.tabs.active_tab")
                     .file-info-area(ng-if="!['route', 'app'].includes(viewer.tabs.active_tab.mode)")
@@ -535,5 +529,52 @@
                     .d-block
                         .btn.btn-white(ng-click="viewer.shortcut.toggle()" class="{{viewer.shortcut.show ? 'btn-primary' : 'btn-white'}}")
                             i.fa-solid.fa-keyboard
+
+    #offcanvas-plugin-info.offcanvas.offcanvas-end(tabindex="-1" style="width: 100%; max-width: 640px;")
+        .offcanvas-header
+            h3.p-0.m-0 Plugin Information
+            .close(type="button" data-bs-dismiss="offcanvas" aria-label="Close")
+                i.fa-solid.fa-xmark
+
+        .offcanvas-body.p-4
+            .form-group.row.mb-3
+                label.form-label.col-3.col-form-label Plugin ID
+                .col
+                    input.form-control(type="text" ng-model="data.info.id" disabled="disabled")
+                
+            .form-group.row.mb-3
+                label.form-label.col-3.col-form-label Plugin Name
+                .col
+                    input.form-control(type="text" placeholder="Plugin Name" ng-model="data.info.name")
+            
+            .form-group.row.mb-3
+                label.form-label.col-3.col-form-label Plugin Version
+                .col
+                    input.form-control(type="text" placeholder="1.0.0" ng-model="data.info.version")
+
+            .form-group.row.mb-3
+                label.form-label.col-3.col-form-label Logo
+                .col.text-left
+                    .avatar-area
+                        .avatar-container
+                            span.avatar(style="background-image: url({{data.info.logo}});" ng-cloak)
+                    input.form-control#file-logo(type="file" accept="image/*" style="display: none")
+                .col-2
+                    .btn.btn-outline-primary.btn-circle.btn-block(ng-click="viewer.info.upload.logo()") Upload
+                    .btn.btn-outline-danger.btn-block.btn-circle.mt-2(ng-if="data.info.logo" ng-click="data.info.logo = ''") Delete
+
+            .form-group.row.mb-3
+                label.form-label.col-3.col-form-label Featured Image
+                .col.text-center
+                    input.form-control#file-featured(type="file" accept="image/*" style="display: none")
+                    img(ng-if="data.info.featured" ng-src="{{data.info.featured}}" style="width: 100%;")
+                .col-2
+                    .btn.btn-outline-primary.btn-circle.btn-block(ng-click="viewer.info.upload.featured()") Upload
+                    .btn.btn-outline-danger.btn-block.btn-circle.mt-2(ng-if="data.info.featured" ng-click="data.info.featured = ''") Delete
+
+            .mt-5.mb-3.d-flex
+                .btn.btn-outline-danger.btn-circle(ng-click="viewer.info.delete()") Delete
+                .ml-auto
+                .btn.btn-primary.btn-circle(ng-click="viewer.info.update()") Update
 
     {$ wiz.render("modal.message") $}

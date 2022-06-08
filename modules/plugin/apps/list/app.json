@@ -1,14 +1,1 @@
-{
-    "id": "plugin.list",
-    "title": "plugin.list",
-    "properties": {
-        "html": "pug",
-        "js": "javascript",
-        "css": "scss"
-    },
-    "viewuri": "",
-    "created": "2022-04-27 15:42:48",
-    "updated": "2022-05-23 21:22:26",
-    "controller": "",
-    "theme": "base"
-}
+{"id": "list", "title": "plugin.list", "properties": {"html": "pug", "js": "javascript", "css": "scss"}, "viewuri": "", "created": "2022-04-27 15:42:48", "updated": "2022-06-08 22:42:22", "controller": "", "theme": "base"}

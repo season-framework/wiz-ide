@@ -60,7 +60,7 @@
                     .root-tree(ng-repeat="item in tree.data" ng-include="'tree.html'")
 
         .main-context(ng-if="viewer.mode")
-            .d-flex.navigation(style="padding-left: 12px;")
+            .d-flex.navigation(style="padding-left: 12px;")                
                 .navigate-path
                     span= "/" + target
                     span /{{viewer.path}}

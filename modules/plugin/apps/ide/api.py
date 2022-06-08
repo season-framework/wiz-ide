@@ -11,6 +11,30 @@ plugin_id = wiz.request.query('plugin_id', True)
 instance = wiz.load(plugin_id)
 pluginfs = season.util.os.FileSystem(os.path.join(season.path.project, "plugin", "modules", plugin_id))
 
+def info():
+    try:
+        res = pluginfs.read.json("plugin.json", dict())
+        res['id'] = plugin_id
+    except:
+        res = dict()
+        res['id'] = plugin_id
+    wiz.response.status(200, res)
+
+def info_delete():
+    if plugin_id in ['workspace', 'branch', 'installer', 'plugin', 'setting']:
+        wiz.response.status(500, 'not allowed to delete')
+    pluginfs.delete()
+    wiz.response.status(200)
+
+def info_update():
+    try:
+        data = wiz.request.query("data", "{}")
+        data = json.loads(data)
+        res = pluginfs.write.json("plugin.json", data)
+    except:
+        wiz.response.status(400)
+    wiz.response.status(200)
+
 def themes():
     fs = season.util.os.FileSystem(os.path.join(season.path.project, "plugin", "themes"))
     themes = fs.list()

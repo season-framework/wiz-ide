@@ -1,9 +1,1 @@
-{
-    "id": "ide",
-    "title": "/ide",
-    "route": "/ide/<plugin_id>/<path:path>",
-    "viewuri": "/ide",
-    "created": "2021-11-28 14:09:14",
-    "updated": "2022-01-05 15:29:21",
-    "controller": ""
-}
+{"id": "ide", "title": "/ide", "route": "/ide/<plugin_id>/<path:path>", "viewuri": "/ide", "created": "2021-11-28 14:09:14", "updated": "2022-06-08 22:45:45", "controller": ""}

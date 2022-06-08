@@ -8,6 +8,13 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
     let PLUGIN_ID = wiz.data.plugin_id;
     $scope.PLUGIN_ID = PLUGIN_ID;
 
+    const toBase64 = file => new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = error => reject(error);
+    });
+
     let alert = async (message) => {
         await wiz.connect("modal.message")
             .data({
@@ -84,6 +91,11 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
     if (!$scope.data.hash_id) $scope.data.hash_id = 'app';
 
     let loader = {};
+    loader.info = async () => {
+        let res = await wiz.API.async("info", { plugin_id: PLUGIN_ID });
+        if (res.code == 200) return res.data;
+        return {};
+    };
     loader.controller = async () => {
         let res = await wiz.API.async("controllers", { plugin_id: PLUGIN_ID });
         if (res.code == 200) return res.data;
@@ -98,6 +110,7 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
     loader.init = async () => {
         $scope.data.theme = await loader.theme();
         $scope.data.controller = await loader.controller();
+        $scope.data.info = await loader.info();
     }
 
     await loader.init();
@@ -107,7 +120,8 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
     };
     $scope.data.sortable = { handle: '.draggable' };
     $scope.data.search = {};
-    $scope.data.apps = {};
+    $scope.data.apps = [];
+    $scope.data.routes = [];
     $scope.data.files = {};
     $scope.data.files.controller = {};
     $scope.data.files.model = {};
@@ -517,6 +531,68 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
             }
             await $timeout();
         }
+
+        obj.upload = {};
+        obj.upload.logo = async () => {
+            $('#file-logo').click();
+            $('#file-logo').change(async () => {
+                let file = document.querySelector('#file-logo').files[0];
+                file = await toBase64(file);
+                $('#file-logo').val(null);
+                if (file.length > 1024 * 100) {
+                    await alert("file size under 100kb");
+                    return;
+                }
+                $scope.data.info.logo = file;
+                await $timeout();
+            });
+        }
+
+        obj.upload.featured = async () => {
+            $('#file-featured').click();
+            $('#file-featured').change(async () => {
+                let file = document.querySelector('#file-featured').files[0];
+                file = await toBase64(file);
+                $('#file-featured').val(null);
+                if (file.length > 1024 * 100) {
+                    await alert("file size under 100kb");
+                    return;
+                }
+                $scope.data.info.featured = file;
+                await $timeout();
+            });
+        }
+
+        obj.update = async () => {
+            let res = await wiz.API.async("info_update", { plugin_id: PLUGIN_ID, data: JSON.stringify(angular.copy($scope.data.info)) })
+            if (res.code == 200) {
+                toastr.success("Saved");
+            } else {
+                alert(res.data);
+            }
+        }
+
+        obj.delete = async () => {
+            let res = await wiz.connect("modal.message")
+                .data({
+                    title: "Delete Plugin",
+                    message: "Are you sure to delete this plugin?",
+                    btn_close: 'Close',
+                    btn_action: "Delete",
+                    btn_class: "btn-danger"
+                })
+                .event("modal-show");
+
+            if (!res) return;
+
+            res = await wiz.API.async("info_delete", { plugin_id: PLUGIN_ID });
+            if (res.code == 200) {
+                location.href = "..";
+            } else {
+                alert(res.data);
+            }
+        }
+
         return obj;
     })();
 
@@ -543,6 +619,15 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
             } else {
                 obj.show = true;
             }
+            await $timeout();
+        }
+        return obj;
+    })();
+
+    $scope.viewer.plugin = (function () {
+        let obj = {};
+        obj.show = async () => {
+            $('#offcanvas-plugin-info').offcanvas('show');
             await $timeout();
         }
         return obj;
