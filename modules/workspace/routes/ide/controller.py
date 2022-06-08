@@ -1,1 +1,1 @@
-wiz.response.render("apps.editor")
+wiz.response.render("ide")

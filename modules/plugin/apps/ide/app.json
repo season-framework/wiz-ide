@@ -1,6 +1,6 @@
 {
-    "id": "apps.editor",
-    "title": "apps/editor",
+    "id": "ide",
+    "title": "ide",
     "properties": {
         "html": "pug",
         "js": "javascript",

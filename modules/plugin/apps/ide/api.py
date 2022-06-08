@@ -7,6 +7,30 @@ import time
 import datetime
 import shutil
 
+plugin_id = wiz.request.query('plugin_id', True)
+instance = wiz.load(plugin_id)
+pluginfs = season.util.os.FileSystem(os.path.join(season.path.project, "plugin", "modules", plugin_id))
+
+def themes():
+    fs = season.util.os.FileSystem(os.path.join(season.path.project, "plugin", "themes"))
+    themes = fs.list()
+    res = [""]
+    for filename in themes:
+        layouts = fs.files(os.path.join(filename, 'layout'))
+        for layout in layouts:
+            res.append(filename + "/" + layout)
+    wiz.response.status(200, res)
+
+def controllers():
+    ctrls = [""]
+    controllers = pluginfs.files(os.path.join("interfaces", "controller"), recursive=True)
+    for ctrl in controllers:
+        ctrl = ctrl.replace(os.path.join("interfaces", "controller") + "/", "")
+        if branchfs.isfile(os.path.join("interfaces", "controller", ctrl)):
+            ctrl = os.path.splitext(ctrl)[0]
+            ctrls.append(ctrl)
+    wiz.response.status(200, ctrls)
+
 def clean():
     wiz.server.config.reload()
     season.cache = season.stdClass()
@@ -17,9 +41,9 @@ def clean():
 def list():
     mode = wiz.request.query("mode", 'app')
     if mode == 'app':
-        res = wiz.src.app.list()
+        res = instance.src.plugin.app.list()
     elif mode == 'route':
-        res = wiz.src.route.list()
+        res = instance.src.plugin.route.list()
     else:
         path = wiz.request.query("path", "")
         while len(path) > 0 and path[0] == "/":
@@ -27,7 +51,7 @@ def list():
         if mode in ['controller', 'model']:
             mode = os.path.join('interfaces', mode)
 
-        basepath = os.path.join(season.path.project, "branch", wiz.branch(), mode)
+        basepath = os.path.join(instance.basepath(), mode)
         fs = season.util.os.FileSystem(basepath)
         res = fs.list(path)
         for i in range(len(res)):
@@ -49,11 +73,11 @@ def load():
         mode = wiz.request.query("mode", 'app')
         if mode == 'app':
             app_id = wiz.request.query("id", True)
-            app = wiz.src.app(app_id)
+            app = instance.src.plugin.app(app_id)
             res = app.data()
         elif mode == 'route':
             app_id = wiz.request.query("id", True)
-            app = wiz.src.route(app_id)
+            app = instance.src.plugin.route(app_id)
             res = app.data()
         else:
             path = wiz.request.query("path", True)
@@ -61,7 +85,7 @@ def load():
                 path = path[1:]
             if mode in ['controller', 'model']:
                 mode = os.path.join('interfaces', mode)
-            basepath = os.path.join(season.path.project, "branch", wiz.branch(), mode)
+            basepath = os.path.join(instance.basepath(), mode)
             fs = season.util.os.FileSystem(basepath)
 
             res = None
@@ -84,13 +108,13 @@ def load():
 
 def app_create():
     app_id = wiz.request.query("app_id", True)
-    if len(app_id) < 4:
-        wiz.response.status(404, "APP ID must be at least 4 characters ")
+    if len(app_id) < 3:
+        wiz.response.status(404, "APP ID must be at least 3 characters ")
 
     data = wiz.request.query("data", True)
     data = json.loads(data)
 
-    basepath = os.path.join(wiz.branchpath(), "apps")
+    basepath = os.path.join(instance.basepath(), "apps")
     fs = season.util.os.FileSystem(basepath)
     if fs.exists(app_id):
         wiz.response.status(401, "ID already used")
@@ -98,7 +122,7 @@ def app_create():
     for c in app_id:
         if c not in allowed:
             wiz.response.status(500, "only alphabet and number and . in package id")
-    app = wiz.src.app(app_id)
+    app = instance.src.plugin.app(app_id)
     try:
         app.update(data)
         app.manager.clean()
@@ -109,10 +133,10 @@ def app_create():
 def app_rename():
     app_id = wiz.request.query("app_id", True)
     rename = wiz.request.query("rename", True)
-    if len(rename) < 4 or len(app_id) < 4:
-        wiz.response.status(404, "APP ID must be at least 4 characters ")
+    if len(rename) < 3 or len(app_id) < 3:
+        wiz.response.status(404, "APP ID must be at least 3 characters ")
 
-    basepath = os.path.join(wiz.branchpath(), "apps")
+    basepath = os.path.join(instance.basepath(), "apps")
     fs = season.util.os.FileSystem(basepath)
     if fs.exists(app_id) == False:
         wiz.response.status(404, "App Not Found")
@@ -129,12 +153,12 @@ def app_rename():
 
 def app_update():
     app_id = wiz.request.query("app_id", True)
-    if len(app_id) < 4:
-        wiz.response.status(404, "APP ID must be at least 4 characters ")
+    if len(app_id) < 3:
+        wiz.response.status(404, "APP ID must be at least 3 characters ")
 
     data = wiz.request.query("data", True)
     data = json.loads(data)
-    app = wiz.src.app(app_id)
+    app = instance.src.plugin.app(app_id)
     try:
         app.update(data)
         app.manager.clean()
@@ -144,22 +168,22 @@ def app_update():
 
 def app_delete():
     app_id = wiz.request.query("app_id", True)
-    basepath = os.path.join(wiz.branchpath(), "apps")
+    basepath = os.path.join(instance.basepath(), "apps")
     fs = season.util.os.FileSystem(basepath)
-    if len(app_id) > 3 and fs.exists(app_id):
+    if len(app_id) >= 3 and fs.exists(app_id):
         fs.delete(app_id)
     wiz.response.status(200)
 
 # route edit
 def route_create():
     app_id = wiz.request.query("app_id", True)
-    if len(app_id) < 4:
-        wiz.response.status(404, "APP ID must be at least 4 characters ")
+    if len(app_id) < 3:
+        wiz.response.status(404, "APP ID must be at least 3 characters ")
 
     data = wiz.request.query("data", True)
     data = json.loads(data)
 
-    basepath = os.path.join(wiz.branchpath(), "routes")
+    basepath = os.path.join(instance.basepath(), "routes")
     fs = season.util.os.FileSystem(basepath)
     if fs.exists(app_id):
         wiz.response.status(401, "ID already used")
@@ -167,7 +191,7 @@ def route_create():
     for c in app_id:
         if c not in allowed:
             wiz.response.status(500, "only alphabet and number and . in package id")
-    app = wiz.src.route(app_id)
+    app = instance.src.plugin.route(app_id)
     try:
         app.update(data)
         app.manager.clean()
@@ -178,10 +202,10 @@ def route_create():
 def route_rename():
     app_id = wiz.request.query("app_id", True)
     rename = wiz.request.query("rename", True)
-    if len(rename) < 4 or len(app_id) < 4:
-        wiz.response.status(404, "APP ID must be at least 4 characters ")
+    if len(rename) < 4 or len(app_id) < 3:
+        wiz.response.status(404, "APP ID must be at least 3 characters ")
 
-    basepath = os.path.join(wiz.branchpath(), "routes")
+    basepath = os.path.join(instance.basepath(), "routes")
     fs = season.util.os.FileSystem(basepath)
     if fs.exists(app_id) == False:
         wiz.response.status(404, "App Not Found")
@@ -198,12 +222,12 @@ def route_rename():
 
 def route_update():
     app_id = wiz.request.query("app_id", True)
-    if len(app_id) < 4:
-        wiz.response.status(404, "APP ID must be at least 4 characters ")
+    if len(app_id) < 3:
+        wiz.response.status(404, "APP ID must be at least 3 characters ")
 
     data = wiz.request.query("data", True)
     data = json.loads(data)
-    app = wiz.src.route(app_id)
+    app = instance.src.plugin.route(app_id)
     try:
         app.update(data)
         app.manager.clean()
@@ -213,9 +237,9 @@ def route_update():
 
 def route_delete():
     app_id = wiz.request.query("app_id", True)
-    basepath = os.path.join(wiz.branchpath(), "routes")
+    basepath = os.path.join(instance.basepath(), "routes")
     fs = season.util.os.FileSystem(basepath)
-    if len(app_id) > 3 and fs.exists(app_id):
+    if len(app_id) >= 3 and fs.exists(app_id):
         fs.delete(app_id)
     wiz.response.status(200)
 
@@ -234,7 +258,7 @@ def file_create():
     if mode in ['controller', 'model']:
         mode = os.path.join('interfaces', mode)
 
-    basepath = os.path.join(wiz.branchpath(), mode, path)
+    basepath = os.path.join(instance.basepath(), mode, path)
     fs = season.util.os.FileSystem(basepath)
 
     if fs.exists(name):
@@ -259,12 +283,12 @@ def file_update():
     if mode in ['controller', 'model']:
         mode = os.path.join('interfaces', mode)
 
-    basepath = os.path.join(season.path.project, "branch", wiz.branch(), mode)
+    basepath = os.path.join(instance.basepath(), mode)
 
     basename = os.path.basename(path)
     dirname = os.path.dirname(path)
 
-    basepath = os.path.join(wiz.branchpath(), mode, dirname)
+    basepath = os.path.join(instance.basepath(), mode, dirname)
     fs = season.util.os.FileSystem(basepath)
 
     if basename != name:
@@ -281,7 +305,7 @@ def file_update():
 def file_delete():
     mode = wiz.request.query("mode", True)
     if mode in ['controller', 'model']: mode = os.path.join('interfaces', mode)
-    basepath = os.path.join(season.path.project, "branch", wiz.branch(), mode)
+    basepath = os.path.join(instance.basepath(), mode)
     fs = season.util.os.FileSystem(basepath)
     path = wiz.request.query("path", True)
     while len(path) > 0 and path[0] == "/":
@@ -294,7 +318,7 @@ def file_delete():
 def download():
     mode = wiz.request.query("mode", True)
     if mode in ['controller', 'model']: mode = os.path.join('interfaces', mode)
-    basepath = os.path.join(season.path.project, "branch", wiz.branch(), mode)
+    basepath = os.path.join(instance.basepath(), mode)
     fs = season.util.os.FileSystem(basepath)
 
     path = wiz.request.query("path", True)

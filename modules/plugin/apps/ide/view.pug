@@ -64,15 +64,6 @@
                         li.nav-item
                             .row.m-0.p-0
                                 .col.m-0.p-0
-                                    a.nav-link(ng-click="event.load('themes')")
-                                        span.mr-2(style="width: 20px; text-align: center;")
-                                            i.fa-solid.fa-display
-                                        .d-block
-                                            .nav-link-title Theme
-
-                        li.nav-item
-                            .row.m-0.p-0
-                                .col.m-0.p-0
                                     a.nav-link(ng-click="event.load('resources')")
                                         span.mr-2(style="width: 20px; text-align: center;")
                                             i.fa-solid.fa-folder-tree
@@ -89,13 +80,8 @@
                                             .nav-link-title Config
 
                 .list-container(ng-if="viewer.list.view == 'list'")
-                    ul.navbar-nav(ng-repeat="category in data.category" ng-if="data.apps[category.id].length > 0 && viewer.list.mode == 'app'")
-                        li.nav-item.nav-item-header 
-                            .text-left
-                                span {{category.title}}
-                                small.ml-1.text-muted ({{data.apps[category.id] ? data.apps[category.id].length : 0 }})
-                        
-                        li.nav-item(ng-repeat="item in data.apps[category.id]" ng-if="!item.hide" class="{{viewer.tabs.active_tab.mode == viewer.list.mode && viewer.tabs.active_tab.org_app_id == item.package.id ? 'active' : ''}}")
+                    ul.navbar-nav(ng-if="data.apps.length > 0 && viewer.list.mode == 'app'")                        
+                        li.nav-item(ng-repeat="item in data.apps" ng-if="!item.hide" class="{{viewer.tabs.active_tab.mode == viewer.list.mode && viewer.tabs.active_tab.org_app_id == item.package.id ? 'active' : ''}}")
                             .row.m-0.p-0
                                 .col.m-0.p-0
                                     a.nav-link(ng-click="viewer.tabs.add('app', item.package.id)")
@@ -178,7 +164,7 @@
                                 span.status-indicator-circle
 
                         .col(style="line-height: 1;")
-                            h2.page-title IDE
+                            h2.page-title [{{PLUGIN_ID}}] Plugin
                             .text-muted
                                 ul.list-inline.list-inline-dots.mb-0
                                     li.list-inline-item {{viewer.tabs.active_tab.mode}} 
@@ -197,12 +183,6 @@
                                 a.btn.btn-white.mr-1(href="?dev=true{{'#' + data.hash_id}}") product
                             - else
                                 a.btn.btn-primary.mr-1(href="?dev=false{{'#' + data.hash_id}}") develop
-                            
-                            //- a.btn.btn-primary.mr-1(ng-click="")
-                            //-     i.fa-solid.fa-cloud-arrow-down
-
-                            //- a.btn.btn-primary.mr-1(ng-click="")
-                            //-     i.fa-solid.fa-cloud-arrow-up
 
                             a.btn.btn-primary.mr-1(ng-click="viewer.tabs.add(viewer.tabs.active_tab.mode == 'route' ? 'route' : 'app', 'new')")
                                 i.fa-solid.fa-plus
@@ -211,7 +191,7 @@
                             
                             a.btn.btn-primary.mr-1(ng-click="event.save()") Save
 
-                            a.btn.btn-primary(href="{$ wiz.url('ui/workspace/') $}{{viewer.list.mode == 'route' ? 'routes' : 'apps' }}")
+                            a.btn.btn-primary(href="{$ wiz.url('ui/plugin/list') $}")
                                 i.fa-solid.fa-xmark
             
             .workspace-list-item
@@ -289,16 +269,7 @@
                                     label.form-label.col-form-label View URI
                                 .col
                                     input.form-control.form-control-sm.form-control-round(type="text" ng-model="viewer.tabs.active_tab.data.package.viewuri" placeholder="/routename/path")
-                            
-                            .form-group.row
-                                .col-3
-                                    label.form-label.col-form-label Category
-                                .col.col-form-select
-                                    .form-selectgroup
-                                        label.form-selectgroup-item(ng-repeat="item in data.category")
-                                            input.form-selectgroup-input(type="radio" name="category" value="{{item.id}}" ng-model="viewer.tabs.active_tab.data.package.category")
-                                            span.form-selectgroup-label {{item.title}}
-                            
+
                             .form-group.row
                                 .col-3
                                     label.form-label.col-form-label Controller
@@ -438,7 +409,7 @@
                                 .editor-tab-editor-container(id='{{tab.id}}' ng-repeat="tab in viewer.tabs.data" ng-click="tab.activate()" class="{{viewer.tabs.active_tab.id == tab.id ? 'active' : 'inactive'}}")
                                     
                                     //- app editor
-                                    .monaco-area(ng-if="tab.mode == 'app'" style="height: {{ viewer.debug.show ? 'calc(60vh - 60px)' : '100%' }} !important;")
+                                    .monaco-area(ng-if="tab.mode == 'app'" style="height: {{ viewer.debug.show ? 'calc(60vh - 62px)' : '100%' }} !important;")
                                         .draggable.code-title.bg-primary.d-flex
                                             .pl-2(style="max-width: 80%;")
                                                 .nowrap(ng-if="tab.new")
@@ -468,7 +439,7 @@
                                             div(ng-if="tab.code.target == 'dic'" ng-model="tab.dic.data[tab.dic.selected]" ui-monaco-opts="tab.dic.monaco" ui-monaco)
                                             
                                     //- route editor
-                                    .monaco-area(ng-if="tab.mode == 'route'" style="height: {{ viewer.debug.show ? 'calc(60vh - 60px)' : '100%' }} !important;")
+                                    .monaco-area(ng-if="tab.mode == 'route'" style="height: {{ viewer.debug.show ? 'calc(60vh - 62px)' : '100%' }} !important;")
                                         .draggable.code-title.bg-primary.d-flex
                                             .pl-2(style="max-width: 80%;")
                                                 .nowrap(ng-if="tab.new")
@@ -494,7 +465,7 @@
                                             div(ng-if="tab.code.target == 'dic'" ng-model="tab.dic.data[tab.dic.selected]" ui-monaco-opts="tab.dic.monaco" ui-monaco)
 
                                     //- file editor
-                                    .monaco-area(ng-if="['model', 'controller', 'resources', 'themes', 'config'].includes(tab.mode)" style="height: {{ viewer.debug.show ? 'calc(60vh - 60px)' : '100%' }} !important;")
+                                    .monaco-area(ng-if="['model', 'controller', 'resources', 'themes', 'config'].includes(tab.mode)" style="height: {{ viewer.debug.show ? 'calc(60vh - 62px)' : '100%' }} !important;")
                                         .draggable.code-title.bg-primary.d-flex
                                             .pl-2(style="max-width: 80%;")
                                                 .nowrap(ng-if="!tab.new")
@@ -510,28 +481,29 @@
                                             .image-container
                                                 img(ng-src="{{tab.data.data.data}}")
                                 
-                                .editor-tab-editor-container(ng-if="viewer.shortcut.show" style="width: 320px;")
-                                    .d-flex.p-3.pt-2.pb-2.bg-primary-lt
-                                        h3.nowrap.m-0(style="max-width: 220px; overflow: hidden; text-overflow: ellipsis;") 
-                                            span Shortcuts
+                                .editor-tab-editor-container(ng-if="viewer.shortcut.show" style="width: 320px; height: 100%;")
+                                    .d-block(style="height: calc(60vh - 60px);")
+                                        .d-flex.p-3.pt-2.pb-2.bg-primary-lt
+                                            h3.nowrap.m-0(style="max-width: 220px; overflow: hidden; text-overflow: ellipsis;") 
+                                                span Shortcuts
 
-                                        .ml-auto(ng-if="!viewer.tabs.active_tab.new")
-                                            button.btn.btn-primary.btn-circle.btn-sm(style="height: 24px; width: 24px;" ng-click="viewer.shortcut.toggle()")
-                                                i.fa-solid.fa-xmark
-                                    
-                                    .scroll(style="height: calc(100% - 40px); overflow: auto;")
-                                        table.table.table-hover.table-bordered.table-shortcut.mb-0
-                                            tr(ng-repeat="item in shortcut.list")
-                                                th 
-                                                    .text(style="display: inline-block;" ng-repeat="key in item.key.split(' ') track by $index")
-                                                        small.p-1.bg-primary(ng-if="!['Ctrl', 'ArrowRight', 'ArrowLeft'].includes(key)") {{key.replace('Digit', '').replace('Key', '').toLowerCase()}}
-                                                        small.p-1.bg-primary(ng-if="'Ctrl' == key") {{ismac ? 'cmd' : 'ctrl'}}
-                                                        small.p-1.bg-primary(ng-if="'ArrowRight' == key")
-                                                            i.fa-solid.fa-arrow-right
-                                                        small.p-1.bg-primary(ng-if="'ArrowLeft' == key")
-                                                            i.fa-solid.fa-arrow-left
-                                                        small.text-muted(style="margin: 0 2px; font-size: 12px;" ng-if="$index + 1 != item.key.split(' ').length") + 
-                                                td {{item.desc}}
+                                            .ml-auto(ng-if="!viewer.tabs.active_tab.new")
+                                                button.btn.btn-primary.btn-circle.btn-sm(style="height: 24px; width: 24px;" ng-click="viewer.shortcut.toggle()")
+                                                    i.fa-solid.fa-xmark
+                                        
+                                        .scroll(style="height: calc(100% - 40px); overflow: auto;")
+                                            table.table.table-hover.table-bordered.table-shortcut.mb-0
+                                                tr(ng-repeat="item in shortcut.list")
+                                                    th 
+                                                        .text(style="display: inline-block;" ng-repeat="key in item.key.split(' ') track by $index")
+                                                            small.p-1.bg-primary(ng-if="!['Ctrl', 'ArrowRight', 'ArrowLeft'].includes(key)") {{key.replace('Digit', '').replace('Key', '').toLowerCase()}}
+                                                            small.p-1.bg-primary(ng-if="'Ctrl' == key") {{ismac ? 'cmd' : 'ctrl'}}
+                                                            small.p-1.bg-primary(ng-if="'ArrowRight' == key")
+                                                                i.fa-solid.fa-arrow-right
+                                                            small.p-1.bg-primary(ng-if="'ArrowLeft' == key")
+                                                                i.fa-solid.fa-arrow-left
+                                                            small.text-muted(style="margin: 0 2px; font-size: 12px;" ng-if="$index + 1 != item.key.split(' ').length") + 
+                                                    td {{item.desc}}
 
                         .editor-debug(ng-if="viewer.debug.show")
                             .code-select.bg-primary.d-flex(style="margin-top: -2px;")

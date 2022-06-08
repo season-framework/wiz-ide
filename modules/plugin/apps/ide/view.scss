@@ -285,6 +285,7 @@ $radius: 24px;
                 display: table-cell;
                 border-right: 1px solid var(--wiz-color-border);
                 height: 100%;
+                vertical-align: top;
 
                 &.inactive {
                     .code-title,

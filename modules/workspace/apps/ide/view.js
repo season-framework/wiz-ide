@@ -78,11 +78,32 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
     } catch (e) {
         $scope.data.hash_id = '';
     }
-    if (!$scope.data.hash_id) $scope.data.hash_id = 'new';
+    if (!$scope.data.hash_id) $scope.data.hash_id = 'app/new';
 
-    $scope.data.category = wiz.data.category;
-    $scope.data.theme = wiz.data.theme;
-    $scope.data.controller = wiz.data.controller;
+    let loader = {};
+    loader.controller = async () => {
+        let res = await wiz.API.async("controllers");
+        if (res.code == 200) return res.data;
+        return [];
+    };
+    loader.theme = async () => {
+        let res = await wiz.API.async("themes");
+        if (res.code == 200) return res.data;
+        return [];
+    };
+    loader.category = async () => {
+        let res = await wiz.API.async("categories");
+        if (res.code == 200) return res.data;
+        return [];
+    };
+
+    loader.init = async () => {
+        $scope.data.theme = await loader.theme();
+        $scope.data.controller = await loader.controller();
+        $scope.data.category = await loader.category();
+    }
+
+    await loader.init();
     $scope.data.lang = {
         html: ['pug', 'html'],
         css: ['css', 'scss', 'less']
@@ -288,6 +309,8 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
         if (mode == 'app') {
             let is_new = $scope.viewer.tabs.active_tab.new;
             let org_app_id = $scope.viewer.tabs.active_tab.org_app_id;
+
+            await loader.init();
 
             // set dic
             let dic = $scope.viewer.tabs.active_tab.dic;
