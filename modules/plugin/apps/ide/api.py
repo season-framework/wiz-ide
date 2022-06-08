@@ -21,7 +21,7 @@ def info():
     wiz.response.status(200, res)
 
 def info_delete():
-    if plugin_id in ['workspace', 'branch', 'installer', 'plugin', 'setting']:
+    if plugin_id in ['workspace', 'branch', 'plugin', 'setting']:
         wiz.response.status(500, 'not allowed to delete')
     pluginfs.delete()
     wiz.response.status(200)

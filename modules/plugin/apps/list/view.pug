@@ -38,6 +38,6 @@
                             .text-area
                                 h3.card-title.mb-0
                                     .text-reset(style="white-space: normal; word-break: break-all;") {{item.name}}
-                                .text-muted {{item.id}}
+                                .text-muted {{item.publisher ? item.publisher : 'unknown'}}
 
     {$ wiz.render("modal.message") $}

@@ -13,7 +13,6 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
             .event("modal-show");
     }
 
-
     $scope.link = async (link) => {
         location.href = link;
     }
@@ -45,6 +44,8 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
             return comp;
         });
 
+        console.log($scope.data);
+
         await $timeout();
     }
 
@@ -72,6 +73,7 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
     }
 
     $scope.event.new = async (baseurl, text) => {
+        if (!text) text = "";
         if (!(/^[a-zA-Z0-9()]+$/.test(text)) || text.length < 3) {
             alert("Doesn't match the plugin's id rules");
             return;

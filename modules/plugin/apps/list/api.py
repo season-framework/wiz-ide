@@ -6,7 +6,16 @@ def list():
     rows = fs.list()
     res = []
     for item in rows:
-        plugin = fs.read.json(os.path.join(item, "plugin.json"), {"name": item})
-        plugin['id'] = item
+        try:
+            plugin = fs.read.json(os.path.join(item, "plugin.json"), {"name": item})
+            plugin['id'] = item
+        except:
+            plugin = dict()
+            plugin['id'] = item
+            plugin['name'] = item
+
+        if 'name' not in plugin:
+            plugin['name'] = plugin['id']
+
         res.append(plugin)
     wiz.response.status(200, res)

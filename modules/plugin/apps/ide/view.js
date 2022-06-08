@@ -1,3 +1,56 @@
+let resizer = (file, width, quality) => new Promise((resolve) => {
+    if (!quality) quality = 0.8;
+    if (!width) width = 64;
+
+    let photo = function (file, maxSize, callback) {
+        let reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = function (readerEvent) {
+            resize(readerEvent.target.result, maxSize, callback);
+        };
+    }
+
+    let resize = function (dataURL, maxSize, callback) {
+        let image = new Image();
+
+        image.onload = function () {
+            let canvas = document.createElement('canvas'),
+                width = image.width,
+                height = image.height;
+            if (width > height) {
+                if (width > maxSize) {
+                    height *= maxSize / width;
+                    width = maxSize;
+                }
+            } else {
+                if (height > maxSize) {
+                    width *= maxSize / height;
+                    height = maxSize;
+                }
+            }
+            canvas.width = width;
+            canvas.height = height;
+            canvas.getContext('2d').drawImage(image, 0, 0, width, height);
+            output(canvas, callback);
+        };
+
+        image.onerror = function () {
+            return;
+        };
+
+        image.src = dataURL;
+    };
+
+    let output = function (canvas, callback) {
+        let blob = canvas.toDataURL('image/jpeg', quality);
+        callback(blob);
+    }
+
+    photo(file, width, (blob) => {
+        resolve(blob);
+    });
+});
+
 let wiz_controller = async ($sce, $scope, $timeout) => {
     let _$timeout = $timeout;
     $timeout = (timestamp) => new Promise((resolve) => _$timeout(resolve, timestamp));
@@ -537,7 +590,7 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
             $('#file-logo').click();
             $('#file-logo').change(async () => {
                 let file = document.querySelector('#file-logo').files[0];
-                file = await toBase64(file);
+                file = await resizer(file, 128, 0.8);
                 $('#file-logo').val(null);
                 if (file.length > 1024 * 100) {
                     await alert("file size under 100kb");
@@ -552,7 +605,7 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
             $('#file-featured').click();
             $('#file-featured').change(async () => {
                 let file = document.querySelector('#file-featured').files[0];
-                file = await toBase64(file);
+                file = await resizer(file, 512, 0.8);
                 $('#file-featured').val(null);
                 if (file.length > 1024 * 100) {
                     await alert("file size under 100kb");
