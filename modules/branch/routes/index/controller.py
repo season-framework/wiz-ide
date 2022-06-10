@@ -1,1 +1,1 @@
-wiz.response.status(200)
+wiz.response.redirect("branch")

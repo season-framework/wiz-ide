@@ -1,0 +1,14 @@
+{
+    "id": "branch.list",
+    "script_type": "text/javascript",
+    "theme": "default/base",
+    "controller": "",
+    "properties": {
+        "html": "pug",
+        "css": "scss",
+        "js": "javascript"
+    },
+    "title": "branch list",
+    "created": "2022-06-09 08:54:34",
+    "updated": "2022-06-10 22:54:04"
+}

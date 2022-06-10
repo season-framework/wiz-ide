@@ -1,0 +1,1 @@
+{"id": "preview", "title": "preview", "route": "/preview/<plugin_id>/<app_id>/<path:path>", "controller": "", "created": "2022-06-09 09:41:29", "updated": "2022-06-09 09:53:32", "viewuri": "/wiz/ui/plugin/preview/workspace/apps.list"}

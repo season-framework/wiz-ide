@@ -71,6 +71,7 @@ aside {
     }
 }
 
+
 .workspace-area {
     height: 100%;
 }
@@ -405,4 +406,8 @@ tr.bg-secondary {
     td, th {
         background-color: var(--wiz-color-secondary) !important;
     }
+}
+
+span.badge {
+    width: 24px;
 }

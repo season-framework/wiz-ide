@@ -439,6 +439,7 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
             $(this).attr('src', src);
         });
 
+        await $scope.viewer.branch.changes();
         toastr.success('saved');
         await $timeout();
     }
@@ -513,6 +514,93 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
             if (obj.view == 'list') obj.view = 'select';
             else obj.view = 'list';
             await $timeout();
+        }
+
+        return obj;
+    })();
+
+    $scope.viewer.branch = (function () {
+        let obj = {};
+        obj.show = false;
+
+        obj.toggle = async () => {
+            if (obj.show) {
+                obj.show = false;
+            } else {
+                obj.show = true;
+                await obj.changes();
+            }
+            await $timeout();
+        }
+
+        obj.changes = async () => {
+            let res = await wiz.API.async('git_changes');
+            if (res.code == 200) {
+                obj.data = res.data;
+                obj.count = 0;
+                for (let mode in obj.data) {
+                    for (let i = 0; i < obj.data[mode].length; i++) {
+                        obj.data[mode][i].color = 'bg-secondary';
+                        if (obj.data[mode][i].change_type == 'M')
+                            obj.data[mode][i].color = 'bg-yellow';
+                        if (obj.data[mode][i].change_type == 'R')
+                            obj.data[mode][i].color = 'bg-yellow';
+                        if (obj.data[mode][i].change_type == 'D')
+                            obj.data[mode][i].color = 'bg-red';
+                        if (obj.data[mode][i].change_type == 'A')
+                            obj.data[mode][i].color = 'bg-green';
+                        obj.count++;
+                    }
+                }
+            }
+            await $timeout();
+        }
+
+        obj.commit = async (message) => {
+            let res = await wiz.API.async("git_commit", { message: message });
+            if (res.code == 200) {
+                obj.message = "";
+                await obj.changes();
+            } else {
+                await alert(res.data);
+            }
+        }
+
+        obj.open = async (item) => {
+            if (item.mode == 'routes') {
+                let app_id = item.path.split("/")[0];
+                let code = item.path.split("/")[1];
+                let codemap = {
+                    'controller.py': 'controller',
+                    'dic.json': 'dic'
+                }
+                if (codemap[code]) {
+                    $scope.viewer.tabs.lastcode.route = codemap[code];
+                }
+                await $scope.viewer.tabs.add('route', app_id);
+            } else if (item.mode == 'apps') {
+                let app_id = item.path.split("/")[0];
+                let code = item.path.split("/")[1];
+                let codemap = {
+                    'controller.py': 'controller',
+                    'socketio.py': 'socketio',
+                    'api.py': 'api',
+                    'dic.json': 'dic',
+                    'view.js': 'js',
+                    'view.css': 'css',
+                    'view.scss': 'css',
+                    'view.less': 'css',
+                    'view.pug': 'html',
+                    'view.html': 'html'
+                }
+                if (codemap[code]) {
+                    $scope.viewer.tabs.lastcode.app = codemap[code];
+                }
+                await $scope.viewer.tabs.add('app', app_id);
+            } else {
+                console.log(item.path);
+                await $scope.viewer.tabs.add(item.mode, { mode: item.mode, path: item.path, name: item.path.split("/")[item.path.split("/").length - 1], type: 'file' });
+            }
         }
 
         return obj;
@@ -917,6 +1005,22 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
                     await $scope.viewer.list.toggle();
                 }
             },
+            'info': {
+                key: 'Ctrl KeyI',
+                desc: 'toggle info panel',
+                monaco: monaco.KeyMod.CtrlCmd | monaco.KeyCode.KEY_I,
+                fn: async () => {
+                    await $scope.viewer.info.toggle();
+                }
+            },
+            'branch': {
+                key: 'Ctrl KeyB',
+                desc: 'Git Commit',
+                monaco: monaco.KeyMod.CtrlCmd | monaco.KeyCode.KEY_B,
+                fn: async () => {
+                    await $scope.viewer.branch.toggle();
+                }
+            },
             'debug': {
                 key: 'Ctrl KeyJ',
                 desc: 'toggle debug panel',
@@ -933,15 +1037,6 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
                     await $scope.socket.clear();
                 }
             },
-            'info': {
-                key: 'Ctrl KeyI',
-                desc: 'toggle info panel',
-                monaco: monaco.KeyMod.CtrlCmd | monaco.KeyCode.KEY_I,
-                fn: async () => {
-                    await $scope.viewer.info.toggle();
-                }
-            },
-
             'new_file': {
                 key: 'Alt KeyN',
                 desc: 'create new file',

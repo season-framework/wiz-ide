@@ -1,0 +1,1 @@
+wiz.response.render("branch.merge")

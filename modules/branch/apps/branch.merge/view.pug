@@ -1,0 +1,62 @@
+.page.aside-page
+    aside.navbar.navbar-vertical.navbar-expand-lg.navbar-side
+        .container
+            .navbar-brand-container.bg-primary
+                button.navbar-toggler.text-white(type='button' data-bs-toggle='collapse' data-bs-target='#navbar-menu')
+                    span.navbar-toggler-icon
+
+                a.navbar-brand.navbar-brand-autodark.d-none-navbar-horizontal.pr-0.m-0(href="{$ wiz.url() $}")
+                    .text-center
+                        img.m-0(src="{$ wiz.url.resource('img/logo-white.png') $}" style='height:36px;')
+
+            .list-container
+                ul.navbar-nav
+                    li.nav-item.nav-item-header
+                        .text-left
+                            span Conflicts
+                    
+                    li.nav-item(ng-repeat="item in data.diff.conflict" class="{{item == current.commit_path ? 'active' : ''}}" ng-click="editor(item, true)")
+                        .p-2
+                            span.badge.badge-sm.bg-red.mr-1 C
+                            span {{item}}
+
+                    li.nav-item.nav-item-header
+                        .text-left
+                            span Changes
+                    
+                    li.nav-item(ng-repeat="item in data.diff.diff" class="{{item.commit_path == current.commit_path ? 'active' : ''}}" ng-click="editor(item)")
+                        .p-2
+                            span.badge.badge-sm.mr-1(class="{{item.color}}") {{item.change_type}}
+                            span {{item.commit_path}}
+
+    .content
+        .workspace-area
+            .workspace-list-header
+                .page-header.d-print-none
+                    .row.align-items-center
+                        .col-auto
+                            span.status-indicator.status-indicator-animated.status-primary
+                                span.status-indicator-circle
+                                span.status-indicator-circle
+                                span.status-indicator-circle
+
+                        .col(style="line-height: 1;")
+                            h2.page-title Merge
+                            .text-muted
+                                ul.list-inline.list-inline-dots.mb-0
+                                    li.list-inline-item
+                                        small.pr-2.pl-2.bg-primary-lt {$ src $}
+                                        small.mr-2.ml-2
+                                            i.fa-solid.fa-circle-arrow-right
+                                        small.pr-2.pl-2.bg-primary-lt {$ dest $}
+
+                        .col-auto.actions
+                            a.btn.btn-primary.mr-1(ng-click="save()") Save
+                            a.btn.btn-primary.mr-1(ng-click="merge()") Merge
+                            a.btn.btn-primary(href="{$ wiz.url('ui/branch') $}")
+                                i.fa-solid.fa-xmark
+            
+            .workspace-list-item
+                .editor-area(style="width: 100% !important;")
+                    div(ng-model="data.editor" ui-monaco-opts="monaco_config" ui-monaco-diff)
+    {$ wiz.render("modal.message") $}

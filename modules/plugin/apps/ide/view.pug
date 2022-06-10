@@ -429,7 +429,7 @@
                                         .monaco-editor-container(ng-if="tab.show")
                                             div(ng-if="!['preview', 'dic'].includes(tab.code.target)" ng-model="tab.data[tab.code.target]" ui-monaco-opts="tab.monaco" ui-monaco)
                                             div(ng-if="tab.code.target == 'preview'")
-                                                iframe.preview(style="width: 100%; height: 100%;" ng-src="{{tab.data.package.viewuri ? tab.data.package.viewuri : '{$ wiz.url('ui/workspace/preview/app') $}/' + tab.data.package.id}}")
+                                                iframe.preview(style="width: 100%; height: 100%;" ng-src="{{tab.data.package.viewuri ? tab.data.package.viewuri : '{$ wiz.url('ui/plugin/preview/') $}' + PLUGIN_ID + '/' + tab.data.package.id}}")
                                             div(ng-if="tab.code.target == 'dic'" ng-model="tab.dic.data[tab.dic.selected]" ui-monaco-opts="tab.dic.monaco" ui-monaco)
                                             
                                     //- route editor

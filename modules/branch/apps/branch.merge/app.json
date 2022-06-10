@@ -1,0 +1,14 @@
+{
+    "id": "branch.merge",
+    "script_type": "text/javascript",
+    "theme": "default/empty",
+    "controller": "",
+    "properties": {
+        "html": "pug",
+        "css": "scss",
+        "js": "javascript"
+    },
+    "title": "merge",
+    "created": "2022-06-10 18:20:00",
+    "updated": "2022-06-10 22:37:49"
+}

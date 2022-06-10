@@ -1,1 +1,14 @@
-{"id": "file.browser", "title": "file.browser", "properties": {"html": "pug", "js": "javascript", "css": "scss"}, "viewuri": "/resources", "created": "2022-04-27 15:42:48", "updated": "2022-06-08 23:44:07", "controller": "", "theme": "base"}
+{
+    "id": "file.browser",
+    "title": "file.browser",
+    "properties": {
+        "html": "pug",
+        "js": "javascript",
+        "css": "scss"
+    },
+    "viewuri": "/resources",
+    "created": "2022-04-27 15:42:48",
+    "updated": "2022-06-08 23:44:07",
+    "controller": "",
+    "theme": "default/base"
+}

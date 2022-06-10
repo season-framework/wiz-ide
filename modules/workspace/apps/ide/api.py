@@ -340,3 +340,49 @@ def download():
         wiz.response.download(path, as_attachment=True)
 
     wiz.response.abort(404)
+
+import git
+
+def git_changes():
+    branchfs = wiz.branchfs()
+    repo = git.Repo.init(branchfs.abspath())
+    
+    repo.git.add('--all')
+    src = "index"
+    parent = repo.commit()
+    diffs = parent.diff(None)
+    
+    res = dict()
+    for diff in diffs:
+        obj = {"change_type": diff.change_type, "path": diff.b_path, "commit": src, "parent": str(parent)}        
+        path = obj['path']
+        mode = path.split("/")[0]
+        if mode == 'interfaces':
+            mode = path.split("/")[1]
+        if mode not in res: res[mode] = []
+
+        if mode == 'routes': obj['path'] = path[7:]
+        if mode == 'apps': obj['path'] = path[5:]
+        if mode == 'controller': obj['path'] = path[22:]
+        if mode == 'model': obj['path'] = path[17:]
+        if mode == 'themes': obj['path'] = path[7:]
+        if mode == 'resources': obj['path'] = path[10:]
+        if mode == 'config': obj['path'] = path[7:]
+
+        obj['mode'] = mode
+        res[mode].append(obj)
+
+    wiz.response.status(200, res)
+
+def git_commit():
+    try:
+        branchfs = wiz.branchfs()
+        repo = git.Repo.init(branchfs.abspath())
+        message = wiz.request.query("message", "commit")
+        repo.index.commit(message)
+        if wiz.branch() not in ['master', 'main']:
+            origin = repo.remote(name='wiz')
+            origin.push(wiz.branch())
+    except Exception as e:
+        wiz.response.status(500, str(e))
+    wiz.response.status(200)

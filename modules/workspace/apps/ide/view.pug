@@ -238,7 +238,7 @@
                             .form-group.row
                                 .col-3
                                     label.form-label.col-form-label Folder
-                                .col 
+                                .col
                                     .p-2.text-muted(style="width: 100%; word-break: break-all;") {{viewer.tabs.active_tab.mode}}/{{viewer.tabs.active_tab.data.parent}}
 
                             .form-group.row
@@ -435,6 +435,7 @@
                     .code-editor
                         .editor-tabs(style="height: {{ viewer.debug.show ? 'calc(60vh - 60px)' : '100%' }} !important;")
                             .editor-tab-container(ui-sortable='data.sortable' ng-model="viewer.tabs.data")
+                                .editor-tab-editor-container(ng-if="viewer.tabs.data.length == 0")
                                 .editor-tab-editor-container(id='{{tab.id}}' ng-repeat="tab in viewer.tabs.data" ng-click="tab.activate()" class="{{viewer.tabs.active_tab.id == tab.id ? 'active' : 'inactive'}}")
                                     
                                     //- app editor
@@ -468,7 +469,7 @@
                                             div(ng-if="tab.code.target == 'dic'" ng-model="tab.dic.data[tab.dic.selected]" ui-monaco-opts="tab.dic.monaco" ui-monaco)
                                             
                                     //- route editor
-                                    .monaco-area(ng-if="tab.mode == 'route'" style="height: {{ viewer.debug.show ? 'calc(60vh - 62px)' : '100%' }} !important;")
+                                    .monaco-area(ng-if="tab.mode == 'route'" style="height: {{ viewer.debug.show ? 'calc(60vh - 60px)' : '100%' }} !important;")
                                         .draggable.code-title.bg-primary.d-flex
                                             .pl-2(style="max-width: 80%;")
                                                 .nowrap(ng-if="tab.new")
@@ -510,10 +511,44 @@
                                             .image-container
                                                 img(ng-src="{{tab.data.data.data}}")
                                 
+                                .editor-tab-editor-container(ng-if="viewer.branch.show" style="width: 320px; height: 100%;")
+                                    .d-block(style="height: {{ viewer.debug.show ? 'calc(60vh - 60px)' : '100%' }};")
+                                        .d-block
+                                            .d-flex.p-3.pt-2.pb-2.bg-primary-lt
+                                                h3.nowrap.m-0(style="max-width: 220px; overflow: hidden; text-overflow: ellipsis;")
+                                                    span Commit
+                                                .ml-auto
+                                                    button.btn.btn-primary.btn-circle.btn-sm(style="height: 24px; width: 24px;" ng-click="viewer.branch.toggle()")
+                                                        i.fa-solid.fa-xmark
+                                            .p-3(ng-if="viewer.branch.count > 0")
+                                                textarea.form-control(rows=3 placeholder="commit message" ng-model="viewer.branch.message")
+                                            .p-3.pt-0(ng-if="viewer.branch.count > 0")
+                                                button.btn.btn-block.btn-primary.btn-round(ng-click="viewer.branch.commit(viewer.branch.message)") Commit
+
+                                        .d-flex.p-3.pt-2.pb-2.bg-primary-lt(ng-if="viewer.branch.count > 0")
+                                            h3.nowrap.m-0(style="max-width: 220px; overflow: hidden; text-overflow: ellipsis;")
+                                                span Changes
+
+                                        .scroll(style="height: calc(100% - 240px); overflow: auto;")
+                                            table.table.table-sm.table-hover.mb-0(ng-if="viewer.branch.count == 0")
+                                                tbody
+                                                    tr
+                                                        td.text-center.p-4 No Changes
+                                            table.table.table-sm.table-hover.mb-0(ng-if="viewer.branch.count > 0")
+                                                tbody(ng-repeat="mode in ['routes', 'apps', 'controller', 'model', 'themes', 'resources', 'config']" ng-if="viewer.branch.data[mode].length > 0")
+                                                    tr.bg-secondary
+                                                        th {{mode}}
+                                                            small.text-muted.ml-1 ({{viewer.branch.data[mode].length}})
+                                                    tr(ng-repeat="item in viewer.branch.data[mode]")
+                                                        td
+                                                            a.d-block(style="width: 300px; overflow: hidden; text-overflow: ellipsis; cursor: pointer;" ng-click="viewer.branch.open(item)")
+                                                                span.badge.badge-sm.mr-1(class="{{item.color}}") {{item.change_type}}
+                                                                span {{item.path}}
+
                                 .editor-tab-editor-container(ng-if="viewer.shortcut.show" style="width: 320px; height: 100%;")
-                                    .d-block(style="height: calc(60vh - 60px);")
+                                    .d-block(style="height: {{ viewer.debug.show ? 'calc(60vh - 60px)' : '100%' }};")
                                         .d-flex.p-3.pt-2.pb-2.bg-primary-lt
-                                            h3.nowrap.m-0(style="max-width: 220px; overflow: hidden; text-overflow: ellipsis;") 
+                                            h3.nowrap.m-0(style="max-width: 220px; overflow: hidden; text-overflow: ellipsis;")
                                                 span Shortcuts
 
                                             .ml-auto(ng-if="!viewer.tabs.active_tab.new")
@@ -523,7 +558,7 @@
                                         .scroll(style="height: calc(100% - 40px); overflow: auto;")
                                             table.table.table-hover.table-bordered.table-shortcut.mb-0
                                                 tr(ng-repeat="item in shortcut.list")
-                                                    th 
+                                                    th
                                                         .text(style="display: inline-block;" ng-repeat="key in item.key.split(' ') track by $index")
                                                             small.p-1.bg-primary(ng-if="!['Ctrl', 'ArrowRight', 'ArrowLeft'].includes(key)") {{key.replace('Digit', '').replace('Key', '').toLowerCase()}}
                                                             small.p-1.bg-primary(ng-if="'Ctrl' == key") {{ismac ? 'cmd' : 'ctrl'}}
@@ -558,6 +593,10 @@
                     .d-block
                         .btn(ng-click="viewer.debug.toggle()" class="{{viewer.debug.show ? 'btn-primary' : 'btn-white'}}")
                             i.fa-solid.fa-terminal
+                    
+                    .d-block
+                        .btn(ng-click="viewer.branch.toggle()" class="{{viewer.branch.show ? 'btn-primary' : 'btn-white'}}")
+                            i.fa-solid.fa-code-branch
                     
                     .mt-auto
 

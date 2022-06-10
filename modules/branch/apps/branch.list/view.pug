@@ -1,0 +1,239 @@
+.workspace-list
+    .workspace-list-header
+        .page-header.d-print-none
+            .row.align-items-center
+                .col-auto
+                    span.status-indicator.status-indicator-animated.status-primary
+                        span.status-indicator-circle
+                        span.status-indicator-circle
+                        span.status-indicator-circle
+
+                .col(style="line-height: 1;")
+                    h2.page-title Branch
+                    .text-muted
+                        ul.list-inline.list-inline-dots.mb-0
+                            li.list-inline-item Git branches
+                
+                .col-auto.actions
+                        button.btn.btn-primary(ng-click="event.clean()")
+                            span Clear Remote
+    
+    .workspace-list-item
+        .container.mt-4(style="max-width: 860px;")
+            .page-header.d-print-none.mb-3
+                .row.align-items-center
+                    .col(style="line-height: 1;")
+                        h2.page-title Active Branch
+                        .text-muted
+                            ul.list-inline.list-inline-dots.mb-0
+                                li.list-inline-item managed branch
+
+                    .col-auto.actions
+                        button.btn.btn-primary(ng-click="event.create()")
+                            i.fa-solid.fa-plus.mr-2
+                            span Create
+
+            table.table.text-left
+                thead
+                    tr.bg-primary
+                        th.w-1
+                        th.text-left BRANCH
+                        th.w-1
+                        th.w-1
+
+                tbody(ng-repeat="item in data.active")
+                    tr(class="{{ item.name == branch ? 'bg-primary-lt' : '' }}")
+                        td.w-1
+                            a.btn.btn-circle.btn-sm(class="{{ item.name == branch ? 'bg-primary' : 'btn-white' }}" style="width: 36px; height: 23px;" ng-href="?branch={{item.name}}")
+                                i.fa-solid.fa-check
+                        td.text-left
+                            span.mr-2 {{item.name}}
+                            button.btn.btn-white.btn-circle.btn-sm(ng-if="item.diff > 0")
+                                i.fa-solid.fa-right-left.mr-2
+                                span {{item.diff}}
+                        td.w-1.text-right
+                            button.btn.btn-white.btn-circle.btn-sm(ng-if="!['master', 'main'].includes(item.name)" ng-click="event.archive(item.name)")
+                                i.fa-solid.fa-clock-rotate-left.mr-2
+                                span archive
+                            button.btn.btn-white.btn-circle.btn-sm(ng-click="event.pr.offcanvas(item)")
+                                i.fa-solid.fa-code-pull-request.mr-2
+                                span Pull Request
+                            button.btn.btn-circle.btn-sm(ng-click="event.commits(item)" class="{{item.commits.length > 0 ? 'btn-primary' : 'btn-white'}}")
+                                i.fa-solid.fa-code-commit.mr-2
+                                span Commits
+                        td.w-1.text-right
+                            button.btn.btn-white.btn-circle.btn-sm(ng-click="event.author.offcanvas(item)")
+                                i.fa-solid.fa-user.mr-2
+                                span {{item.author.name}}
+
+                    tr(ng-if="item.commits.length > 0")
+                        td.w-1
+                        td.p-0(colspan=3)
+                            .d-block(style="max-height: 200px; overflow: auto;")
+                                table.table.table-sm.mb-0
+                                    tr(ng-repeat="commit in item.commits")
+                                        td.w-1
+                                            i.fa-solid.fa-code-commit.mr-1
+                                            span {{commit.id.substring(0, 8)}}
+                                        td {{commit.message}}
+                                        td.w-1.text-left
+                                            span.text-muted.mr-1 {{commit.committer}},
+                                        td.w-1.text-right
+                                            span {{datedisplay(commit.datetime)}}
+                                    tr(ng-if="!item.commits_end")
+                                        td.text-center(colspan=4)
+                                            button.btn-link(ng-click="event.commits(item, data.commit_page[item.name]+1)") show more...
+
+            // PRS
+            .page-header.d-print-none.mb-3.mt-5
+                .row.align-items-center
+                    .col(style="line-height: 1;")
+                        h2.page-title Pull Requests
+                        .text-muted
+                            ul.list-inline.list-inline-dots.mb-0
+                                li.list-inline-item merge request
+
+            table.table.table-hover.text-left
+                thead
+                    tr.bg-primary
+                        th.text-left Requests
+                        th.w-1
+                        th.w-1
+                tbody
+                    tr(ng-repeat="item in data.prlist")
+                        td.text-left
+                            span {{item.source}}
+                            span.mr-2.ml-2
+                                i.fa-solid.fa-circle-arrow-right
+                            span {{item.target}}
+                        td.w-1
+                            button.btn.btn-white.btn-circle.btn-sm
+                                i.fa-solid.fa-user.mr-2
+                                span {{item.author.name}}
+                        td.w-1
+                            button.btn.btn-white.btn-circle.btn-sm(ng-click="event.pr.delete(item)")
+                                i.fa-solid.fa-trash.mr-2
+                                span Delete
+                            button.btn.btn-white.btn-circle.btn-sm(ng-click="link('{$ wiz.url() $}ui/branch/merge/' + item.source + '/' + item.target)")
+                                i.fa-solid.fa-code-pull-request.mr-2
+                                span Merge
+
+
+            // stale branch
+            .page-header.d-print-none.mb-3.mt-5
+                .row.align-items-center
+                    .col(style="line-height: 1;")
+                        h2.page-title Stale Branch
+                        .text-muted
+                            ul.list-inline.list-inline-dots.mb-0
+                                li.list-inline-item archived branch
+
+            table.table.table-hover.text-left
+                thead
+                    tr.bg-primary
+                        th.text-left BRANCH
+                        th.w-1
+                tbody
+                    tr(ng-repeat="branch in data.stale")
+                        td.text-left {{branch}}
+                        td.w-1
+                            button.btn.btn-white.btn-circle.btn-sm(ng-click="event.restore(branch)")
+                                i.fa-solid.fa-window-restore.mr-2
+                                span Restore
+                            button.btn.btn-white.btn-circle.btn-sm(ng-click="event.delete(branch)")
+                                i.fa-solid.fa-trash.mr-2
+                                span Delete
+
+    // create branch offcanvas
+    #offcanvas-create-branch.offcanvas.offcanvas-end(tabindex="-1" style="width: 100%; max-width: 640px;")
+        .offcanvas-header
+            h3.p-0.m-0 Create Active Branch
+            .close(type="button" data-bs-dismiss="offcanvas" aria-label="Close")
+                i.fa-solid.fa-xmark
+
+        .offcanvas-body.p-4
+            .form-group.row.mb-3
+                label.form-label.col-3.col-form-label Base Branch
+                .col
+                    select.form-select(ng-model="data.create.base")
+                        option(ng-repeat="item in data.active" ng-value='item.name') {{item.name}}
+            
+            .form-group.row.mb-3
+                label.form-label.col-3.col-form-label Branch Name
+                .col
+                    input.form-control(type="text" placeholder="dev" ng-model="data.create.branch")
+                
+            .form-group.row.mb-3
+                label.form-label.col-3.col-form-label Author Name
+                .col
+                    input.form-control(type="text" placeholder="dev" ng-model="data.create.author_name")
+                
+            .form-group.row.mb-3
+                label.form-label.col-3.col-form-label Author Email
+                .col
+                    input.form-control(type="text" placeholder="dev" ng-model="data.create.author_email")
+
+            .mt-5.mb-3.d-flex
+                .ml-auto
+                .btn.btn-primary.btn-circle(ng-click="event.create_branch()") Create
+
+    #offcanvas-author.offcanvas.offcanvas-end(tabindex="-1" style="width: 100%; max-width: 640px;")
+        .offcanvas-header
+            h3.p-0.m-0 Author Info
+            .close(type="button" data-bs-dismiss="offcanvas" aria-label="Close")
+                i.fa-solid.fa-xmark
+
+        .offcanvas-body.p-4
+            .form-group.row.mb-3
+                label.form-label.col-3.col-form-label Author Name
+                .col
+                    input.form-control(type="text" placeholder="dev" ng-model="data.author.name")
+                
+            .form-group.row.mb-3
+                label.form-label.col-3.col-form-label Author Email
+                .col
+                    input.form-control(type="text" placeholder="dev" ng-model="data.author.email")
+
+            .mt-5.mb-3.d-flex
+                .ml-auto
+                .btn.btn-primary.btn-circle(ng-click="event.author.update()") Update
+    
+    #offcanvas-pr.offcanvas.offcanvas-end(tabindex="-1" style="width: 100%; max-width: 640px;")
+        .offcanvas-header
+            h3.p-0.m-0 Pull Request
+            .close(type="button" data-bs-dismiss="offcanvas" aria-label="Close")
+                i.fa-solid.fa-xmark
+
+        .offcanvas-body.p-4
+            .form-group.row.mb-3
+                label.form-label.col-3.col-form-label Branch
+                .col-4
+                    select.form-select(ng-model="data.pr.source")
+                        option(ng-repeat="branch in data.active" ng-value="branch.name") {{branch.name}}
+                .col-1.text-center
+                    .text-center.text-primary(style="font-size: 24px;")
+                        i.fa-solid.fa-circle-arrow-right
+                .col-4
+                    select.form-select(ng-model="data.pr.target")
+                        option(ng-repeat="branch in data.active" ng-value="branch.name") {{branch.name}}
+            .form-group.row.mb-3
+                label.form-label.col-3.col-form-label Author Name
+                .col
+                    input.form-control(type="text" placeholder="dev" ng-model="data.pr.name")
+                
+            .form-group.row.mb-3
+                label.form-label.col-3.col-form-label Author Email
+                .col
+                    input.form-control(type="text" placeholder="dev" ng-model="data.pr.email")
+
+            .mt-5.mb-3.d-flex
+                .ml-auto
+                .btn.btn-primary.btn-circle(ng-click="event.pr.request()") Request
+
+    .loading(ng-if="loader.display")
+        table
+            tr
+                td
+                    .spinner-border.text-red
+
+    {$ wiz.render("modal.message") $}
