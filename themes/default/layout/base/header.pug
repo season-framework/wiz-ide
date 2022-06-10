@@ -1,0 +1,91 @@
+title WIZ IDE
+
+meta(charset='utf-8')
+meta(name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0")
+meta(http-equiv='X-UA-Compatible' content='ie=edge')
+meta(http-equiv="Content-Language" content="en")
+meta(name='msapplication-TileColor' content='#3843D0')
+meta(name='theme-color' content='#3843D0')
+meta(name='apple-mobile-web-app-status-bar-style' content='black-translucent')
+meta(name='apple-mobile-web-app-capable' content='yes')
+meta(name='mobile-web-app-capable' content='yes')
+meta(name='HandheldFriendly' content='True')
+meta(name='MobileOptimized' content='320')
+
+link(rel="shortcut icon" href="{$ wiz.url.resource('img/wiz-symbol.png') $}")
+
+//- core.js
+script(src='{$ wiz.url.resource() $}core/js/jquery-3.5.1.min.js')
+script(src='{$ wiz.url.resource() $}core/js/angular.min.js')
+script(src='{$ wiz.url.resource() $}core/js/angular-sanitize.js')
+
+//- libs
+script(src='{$ wiz.url.resource() $}libs/ansi/ansi.js')
+
+script(src='{$ wiz.url.resource() $}libs/chartjs/Chart.min.js')
+
+script(src='{$ wiz.url.resource() $}libs/ckeditor/dizest/translations/en.js')
+script(src='{$ wiz.url.resource() $}libs/ckeditor/dizest/ckeditor.js')
+script(src='{$ wiz.url.resource() $}libs/moment/moment-with-locales.min.js')
+script(src='{$ wiz.url.resource() $}libs/sortable/sortable.min.js')
+script(src='{$ wiz.url.resource() $}libs/sortable/sortable.ng.js')
+script(src='{$ wiz.url.resource() $}libs/monaco/ui-monaco.js')
+script(src='{$ wiz.url.resource() $}libs/monaco/ui-monaco-diff.js')
+script(src='{$ wiz.url.resource() $}libs/season/shortcut.js')
+script(src='{$ wiz.url.resource() $}libs/season/dragger.js')
+script(src='{$ wiz.url.resource() $}libs/season/dragger.ng.js')
+script(src='{$ wiz.url.resource() $}libs/socketio/socket.io.js')
+script(src='{$ wiz.url.resource() $}libs/toastr/toastr.min.js')
+
+link(href='{$ wiz.url.resource() $}libs/split-pane/split-pane.css' rel='stylesheet')
+script(src='{$ wiz.url.resource() $}libs/split-pane/split-pane.js')
+script(src='{$ wiz.url.resource() $}libs/split-pane/angular-split-pane.js')
+
+link(href='{$ wiz.url.resource() $}libs/drawflow/drawflow.css' rel='stylesheet')
+script(src='{$ wiz.url.resource() $}libs/drawflow/drawflow.js')
+
+link(href='{$ wiz.url.resource() $}libs/fontawesome/css/all.min.css' rel='stylesheet')
+
+link(href='{$ wiz.url.resource() $}libs/tabler/dist/css/tabler.min.css' rel='stylesheet')
+link(href='{$ wiz.url.resource() $}libs/tabler/dist/css/tabler-flags.min.css' rel='stylesheet')
+link(href='{$ wiz.url.resource() $}libs/tabler/dist/css/tabler-payments.min.css' rel='stylesheet')
+link(href='{$ wiz.url.resource() $}libs/tabler/dist/css/tabler-vendors.min.css' rel='stylesheet')
+
+style.
+    @font-face {
+        font-family: 'wiz-eb';
+        src: url('{$ wiz.url.resource() $}font/d2coding/EB.ttf') format('truetype');
+        font-style: normal;
+        font-weight: 1000;
+    }
+
+    @font-face {
+        font-family: 'wiz-b';
+        src: url('{$ wiz.url.resource() $}font/d2coding/R.ttf') format('truetype');
+        font-style: normal;
+        font-weight: 1000;
+    }
+
+    @font-face {
+        font-family: 'wiz-r';
+        src: url('{$ wiz.url.resource() $}font/d2coding/R.ttf') format('truetype');
+        font-style: normal;
+        font-weight: normal;
+    }
+
+    @font-face {
+        font-family: 'wiz-sub';
+        src: url('{$ wiz.url.resource() $}font/d2coding/R.ttf') format('truetype');
+        font-style: normal;
+        font-weight: normal;
+    }
+
+link(href='{$ wiz.url.resource() $}core/css/root.css' rel='stylesheet')
+link(href='{$ wiz.url.resource() $}core/css/theme.scss' rel='stylesheet')
+
+script(src='{$ wiz.url.resource() $}core/js/base.js')
+script(src='{$ wiz.url.resource() $}core/js/app.js')
+
+
+script(src='{$ wiz.url.resource() $}lang/kr/moment.js')
+link(href='{$ wiz.url.resource() $}libs/toastr/toastr.min.css' rel='stylesheet')

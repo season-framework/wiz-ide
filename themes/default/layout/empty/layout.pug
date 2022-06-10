@@ -1,0 +1,13 @@
+doctype 5
+
+html(ng-app="app")
+    head
+        {$ wiz.theme('default').layout('base').view('header.pug') $}
+        
+    body.antialiased
+        script(src="{$ wiz.url.resource('libs/tabler/dist/js/tabler.min.js') $}")
+        script(src="{$ wiz.url.resource('libs/monaco/min/vs/loader.js') $}")
+        script.
+            require.config({ paths: { vs: "{$ wiz.url.resource('libs/monaco/min/vs') $}" } });
+
+        {$ view $}

@@ -1,0 +1,21 @@
+:root {
+    --wiz-color-background: #fff;
+    --wiz-color-text: #1e293b;
+    --wiz-color-border: #d9d9d9;
+    --wiz-color-primary: #3843D0;
+    --wiz-color-primary-lt: rgba(32, 107, 196, .05);
+    --wiz-color-primary-hover: #3C2D54;
+    --wiz-color-secondary: rgba(116, 108, 112, .1);
+    --wiz-color-highlight: #EB5267;
+    
+    --wiz-color-scroll-background: #F5F5F5;
+    --wiz-color-scroll-thumb: #ababab;
+
+    --wiz-size-screen-xs-min: 0;
+    --wiz-size-screen-xs-max: 768px;
+    --wiz-size-screen-sm-min: 769px;
+    --wiz-size-screen-sm-max: 1279px;
+    --wiz-size-screen-lg-min: 1280px;
+    --wiz-size-screen-lg-max: 2048px;
+    --wiz-size-screen-xl-min: 1280px;
+}

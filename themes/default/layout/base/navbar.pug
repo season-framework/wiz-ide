@@ -1,0 +1,45 @@
+aside.navbar.navbar-vertical.navbar-expand-lg.navbar-side
+    .container
+        .navbar-brand-container.bg-primary
+            button.navbar-toggler.text-white(type='button' data-bs-toggle='collapse' data-bs-target='#navbar-menu')
+                span.navbar-toggler-icon
+
+            a.navbar-brand.navbar-brand-autodark.d-none-navbar-horizontal.pr-0.m-0(href="{$ wiz.url() $}")
+                .text-center
+                    img.m-0(src="{$ wiz.url.resource('img/logo-white.png') $}" style='height:36px;')
+
+        .navbar-sub-menu
+            .menu-list
+                .menu-item(style="flex: auto;")
+                    .dropdown
+                        button.btn.btn-secondary.btn-sm.btn-block.dropdown-toggle(type="button" data-bs-toggle="dropdown" aria-expanded="false")= branch
+                        ul.dropdown-menu
+                            - each item in branches
+                                li
+                                    a.dropdown-item(href="?branch={$ item $}")= item
+
+                .menu-item.ml-auto
+                    - if is_dev == False
+                        a.btn.btn-sm.btn-primary(href="?dev=true") product
+                    - else
+                        a.btn.btn-sm.btn-primary(href="?dev=false") develop
+
+        #navbar-menu.navbar-collapse.collapse
+            ul.navbar-nav
+                - if navbar
+                    - each menu in navbar
+                        - if menu.type == 'header'
+                            li.nav-item.nav-item-header= menu.title
+                        - else
+                            li.nav-item(class=menu['class'])
+                                .row.m-0.p-0
+                                    .col.m-0.p-0
+                                        a.nav-link(href=menu['url'] target=menu['target'])
+                                            - if menu.icon
+                                                span.mr-2(style="width: 20px; text-align: center;")
+                                                    i(class=menu['icon'])
+                                            span.nav-link-title= menu['title']
+                                        
+                                    .nav-item-status.col-auto.align-self-center.m-0.p-0.mr-2
+                                        i.fa-solid.fa-circle
+
