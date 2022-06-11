@@ -1,0 +1,9 @@
+{
+    "id": "packages",
+    "title": "packages",
+    "route": "/packages",
+    "controller": "",
+    "created": "2022-06-11 15:02:09",
+    "updated": "2022-06-11 15:02:32",
+    "viewuri": "/packages"
+}

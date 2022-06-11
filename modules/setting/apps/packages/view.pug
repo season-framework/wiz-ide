@@ -1,0 +1,40 @@
+.workspace-list
+    .workspace-list-header
+        .page-header.d-print-none
+            .row.align-items-center
+                .col-auto
+                    span.status-indicator.status-indicator-animated.status-primary
+                        span.status-indicator-circle
+                        span.status-indicator-circle
+                        span.status-indicator-circle
+
+                .col(style="line-height: 1;")
+                    h2.page-title Python Packages
+
+                .col-auto.actions.p-0
+                    input.form-control.mr-1(placeholder="scikit-learn" ng-model="packages" ng-enter="pip.install(packages)" ng-disabled="pip.install_status" ng-change="pip.search(packages)")
+                
+                .col-auto.actions.p-0
+                    .btn.btn-primary(ng-click="pip.install(packages)")
+                        span(ng-if="!pip.install_status") Install
+                        span.spinner-border.spinner-border-sm.text-white(ng-if="pip.install_status")
+
+    .workspace-container
+        .container.pt-4(style="max-width: 860px;")
+            .row.packages
+                .col-md-4.text-left(ng-repeat="item in pip.data" ng-if="!item.hide")
+                    b {{item.name}}
+                    span {{"=" + item.version}}
+        
+            .search-loading.text-center(style="padding: 10vh 0;" ng-if="!pip.data")
+                .spinner-grow.text-azure(style="width: 120px; height: 120px;")
+    
+    #offcanvas-result.offcanvas.offcanvas-end(tabindex="-1" style="z-index: 1090; max-width: 720px; width: 100%;")
+        .offcanvas-header
+            h3.p-0.m-0 Output
+            .close(type="button" data-bs-dismiss="offcanvas" aria-label="Close")
+                i.fa-solid.fa-xmark
+        
+        .offcanvas-body.p-0
+            pre.m-0 {{pip.install_message}}
+            

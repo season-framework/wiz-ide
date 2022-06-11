@@ -1,0 +1,14 @@
+{
+    "id": "packages",
+    "script_type": "text/javascript",
+    "theme": "default/base",
+    "controller": "",
+    "properties": {
+        "html": "pug",
+        "css": "scss",
+        "js": "javascript"
+    },
+    "title": "packages",
+    "created": "2022-06-11 15:00:54",
+    "updated": "2022-06-11 15:13:59"
+}
