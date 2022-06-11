@@ -6,5 +6,6 @@ menu = [
     {"title": "Model", "url": "/browser/model", "icon": "fa-solid fa-database"},
     {"title": "Theme", "url": "/browser/theme", "icon": "fa-solid fa-display"},
     {"title": "Resources", "url": "/browser/resources", "icon": "fa-solid fa-folder-tree"},
+    {"title": "Compiler", "url": "/browser/compiler", "icon": "fa-solid fa-microchip"},
     {"title": "Config", "url": "/browser/config", "icon": "fa-solid fa-gear"}
 ]
