@@ -2,13 +2,18 @@ import pkg_resources
 import subprocess
 import sys
 
+python_executable = str(sys.executable)
+if wiz.server.config.wiz.python_executable is not None:
+    python_executable = wiz.server.config.wiz.python_executable
+
 def install():
     package = wiz.request.query("package", True)
-    output = subprocess.run([str(sys.executable), "-m", "pip", "install", str(package), "--upgrade"], capture_output=True)
+    output = subprocess.run([python_executable, "-m", "pip", "install", str(package), "--upgrade"], capture_output=True)
     wiz.response.status(200, str(output.stdout.decode("utf-8")))
 
 def installed():
-    output = subprocess.run([str(sys.executable), "-m", "pip", "freeze"], capture_output=True)
+    
+    output = subprocess.run([python_executable, "-m", "pip", "freeze"], capture_output=True)
     output = output.stdout.decode("utf-8")
     output = output.split("\n")
     installed = []
