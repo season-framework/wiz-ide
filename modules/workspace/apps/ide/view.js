@@ -923,6 +923,7 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
                     if (obj.data[i].mode != mode) continue;
                     if (obj.data[i].path == target.path) {
                         await obj.data[i].activate();
+                        await obj.open(obj.data[i]);
                         return;
                     }
                 }
