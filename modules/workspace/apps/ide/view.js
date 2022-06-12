@@ -951,6 +951,8 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
         obj.hide = async (tab) => {
             tab.hide = true;
             obj.hidden.push(tab);
+            obj.data.remove(tab);
+            obj.data.push(tab);
             $timeout();
         }
 
@@ -1113,32 +1115,6 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
                     await $scope.viewer.tabs.active_tab.code.select(newtarget);
                     $scope.viewer.tabs.active_tab.editor.focus();
 
-                    await $timeout();
-                }
-            },
-
-            // tab shortcuts
-            'tabprev': {
-                key: 'Ctrl ArrowUp',
-                desc: 'move previous tab',
-                monaco: monaco.KeyMod.CtrlCmd | monaco.KeyCode.UpArrow,
-                fn: async () => {
-                    let idx = $scope.viewer.tabs.data.indexOf($scope.viewer.tabs.active_tab)
-                    idx = idx - 1;
-                    if (!$scope.viewer.tabs.data[idx]) idx = $scope.viewer.tabs.data.length - 1;
-                    if ($scope.viewer.tabs.data[idx]) await $scope.viewer.tabs.data[idx].activate();
-                    await $timeout();
-                }
-            },
-            'tabnext': {
-                key: 'Ctrl ArrowDown',
-                desc: 'move next tab',
-                monaco: monaco.KeyMod.CtrlCmd | monaco.KeyCode.DownArrow,
-                fn: async () => {
-                    let idx = $scope.viewer.tabs.data.indexOf($scope.viewer.tabs.active_tab)
-                    idx = idx + 1;
-                    if (!$scope.viewer.tabs.data[idx]) idx = 0;
-                    if ($scope.viewer.tabs.data[idx]) await $scope.viewer.tabs.data[idx].activate();
                     await $timeout();
                 }
             },
