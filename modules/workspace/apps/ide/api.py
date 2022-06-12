@@ -8,7 +8,9 @@ import datetime
 import shutil
 
 def categories():
-    wiz.response.status(200, wiz.server.config.wiz.category)
+    category = wiz.server.wiz.config("wiz").get('category')
+    if category is None: category = wiz.server.config.wiz.category
+    wiz.response.status(200, category)
 
 def themes():
     res = [""] + wiz.src.theme.list()

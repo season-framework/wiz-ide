@@ -1,1 +1,14 @@
-{"id": "apps.list", "title": "apps/list", "properties": {"html": "pug", "js": "javascript", "css": "scss"}, "viewuri": "", "created": "2022-04-27 15:42:48", "updated": "2022-06-10 10:35:42", "controller": "", "theme": "default/base"}
+{
+    "id": "apps.list",
+    "title": "apps/list",
+    "properties": {
+        "html": "pug",
+        "js": "javascript",
+        "css": "scss"
+    },
+    "viewuri": "",
+    "created": "2022-04-27 15:42:48",
+    "updated": "2022-06-13 01:18:34",
+    "controller": "",
+    "theme": "default/base"
+}
