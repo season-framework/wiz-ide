@@ -427,7 +427,7 @@
 
                 .editor-area(style="width: calc(100% - {{ viewer.info.show ? '322px' : '42px' }}) !important;")
                     .code-editor
-                        .editor-tabs(style="height: {{ viewer.debug.show ? 'calc(60vh - 60px)' : '100%' }} !important;")
+                        .editor-tabs(style="height: {{ viewer.debug.show ? 'calc(60vh - 60px)' : 'calc(100% - 26px)' }} !important;")
                             .editor-tab-container(ui-sortable='data.sortable' ng-model="viewer.tabs.data")
                                 .editor-tab-editor-container(ng-if="viewer.tabs.data.length == 0")
                                 .editor-tab-editor-container(id='{{tab.id}}' ng-repeat="tab in viewer.tabs.data" ng-click="tab.activate()" class="{{viewer.tabs.active_tab.id == tab.id ? 'active' : 'inactive'}}" ng-show="!tab.hide")
