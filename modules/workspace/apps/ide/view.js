@@ -429,6 +429,8 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
             if (res.code != 200)
                 return alert('Error on save');
 
+            $scope.viewer.tabs.active_tab.data.path = res.data;
+            $scope.viewer.tabs.active_tab.path = res.data;
             delete $scope.viewer.tabs.active_tab.new;
         }
 
@@ -598,7 +600,6 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
                 }
                 await $scope.viewer.tabs.add('app', app_id);
             } else {
-                console.log(item.path);
                 await $scope.viewer.tabs.add(item.mode, { mode: item.mode, path: item.path, name: item.path.split("/")[item.path.split("/").length - 1], type: 'file' });
             }
         }
@@ -944,6 +945,20 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
                 await tab.activate();
         }
 
+        obj.hidden = [];
+
+        obj.hide = async (tab) => {
+            tab.hide = true;
+            obj.hidden.push(tab);
+            $timeout();
+        }
+
+        obj.open = async (tab) => {
+            tab.hide = false;
+            obj.hidden.remove(tab);
+            $timeout();
+        }
+
         obj.remove = async (tab) => {
             let tabidx = obj.data.indexOf(tab);
             obj.data.remove(tab);
@@ -1102,30 +1117,30 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
             },
 
             // tab shortcuts
-            // 'tabprev': {
-            //     key: 'Ctrl Shift ArrowLeft',
-            //     desc: 'move previous tab',
-            //     monaco: monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.LeftArrow,
-            //     fn: async () => {
-            //         let idx = $scope.viewer.tabs.data.indexOf($scope.viewer.tabs.active_tab)
-            //         idx = idx - 1;
-            //         if (!$scope.viewer.tabs.data[idx]) idx = $scope.viewer.tabs.data.length - 1;
-            //         if ($scope.viewer.tabs.data[idx]) await $scope.viewer.tabs.data[idx].activate();
-            //         await $timeout();
-            //     }
-            // },
-            // 'tabnext': {
-            //     key: 'Ctrl Shift ArrowRight',
-            //     desc: 'move next tab',
-            //     monaco: monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.RightArrow,
-            //     fn: async () => {
-            //         let idx = $scope.viewer.tabs.data.indexOf($scope.viewer.tabs.active_tab)
-            //         idx = idx + 1;
-            //         if (!$scope.viewer.tabs.data[idx]) idx = 0;
-            //         if ($scope.viewer.tabs.data[idx]) await $scope.viewer.tabs.data[idx].activate();
-            //         await $timeout();
-            //     }
-            // },
+            'tabprev': {
+                key: 'Ctrl ArrowUp',
+                desc: 'move previous tab',
+                monaco: monaco.KeyMod.CtrlCmd | monaco.KeyCode.UpArrow,
+                fn: async () => {
+                    let idx = $scope.viewer.tabs.data.indexOf($scope.viewer.tabs.active_tab)
+                    idx = idx - 1;
+                    if (!$scope.viewer.tabs.data[idx]) idx = $scope.viewer.tabs.data.length - 1;
+                    if ($scope.viewer.tabs.data[idx]) await $scope.viewer.tabs.data[idx].activate();
+                    await $timeout();
+                }
+            },
+            'tabnext': {
+                key: 'Ctrl ArrowDown',
+                desc: 'move next tab',
+                monaco: monaco.KeyMod.CtrlCmd | monaco.KeyCode.DownArrow,
+                fn: async () => {
+                    let idx = $scope.viewer.tabs.data.indexOf($scope.viewer.tabs.active_tab)
+                    idx = idx + 1;
+                    if (!$scope.viewer.tabs.data[idx]) idx = 0;
+                    if ($scope.viewer.tabs.data[idx]) await $scope.viewer.tabs.data[idx].activate();
+                    await $timeout();
+                }
+            },
 
             'new_tab': {
                 key: 'Alt KeyT',

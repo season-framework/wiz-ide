@@ -6,6 +6,17 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
         { path: "", name: wiz.data.target, type: 'folder', icon: 'fa-layer-group', display: wiz.data.title }
     ];
 
+    let alert = async (message) => {
+        await wiz.connect("modal.message")
+            .data({
+                title: "Alert",
+                message: message,
+                btn_action: "Close",
+                btn_class: "btn-primary"
+            })
+            .event("modal-show");
+    }
+
     $scope.monaco = function (language) {
         var opt = {
             value: '',
@@ -108,6 +119,9 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
             $scope.viewer.path = item.path;
             await $timeout();
         } else if (res.type == 'code') {
+            $scope.viewer.mode = '';
+            await $timeout();
+            
             $scope.viewer.path = item.path;
             $scope.viewer.mode = 'code';
             $scope.viewer.data = res.data;
@@ -119,7 +133,7 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
             };
             await $timeout();
         } else {
-            // not supported
+            alert("Not supported file");
         }
     }
 

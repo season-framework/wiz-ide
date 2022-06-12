@@ -34,7 +34,17 @@ window.season.shortcut = function (element, config) {
             self.set_shortcut(name, config[name]);
         }
 
+        let lasttime = new Date().getTime();
+
         $(element).keydown(function (ev) {
+            let diff = new Date().getTime() - lasttime;
+            lasttime = new Date().getTime();
+
+            if (diff > 3000) {
+                self.holdings = {};    
+                return;
+            }
+
             let keycode = ev.code;
             self.holdings[keycode] = new Date().getTime();
             let ismod = KEYMOD[keycode] ? true : false;

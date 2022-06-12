@@ -294,7 +294,9 @@ def file_update():
     if ftype == 'code':
         fs.write(name, data)
     
-    wiz.response.status(200)
+    if len(dirname) > 0:
+        wiz.response.status(200, f"{dirname}/{name}")
+    wiz.response.status(200, f"{name}")
 
 def file_delete():
     mode = wiz.request.query("mode", True)

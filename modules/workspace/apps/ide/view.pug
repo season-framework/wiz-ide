@@ -197,12 +197,6 @@
                                 a.btn.btn-white.mr-1(href="?dev=true{{'#' + data.hash_id}}") product
                             - else
                                 a.btn.btn-primary.mr-1(href="?dev=false{{'#' + data.hash_id}}") develop
-                            
-                            //- a.btn.btn-primary.mr-1(ng-click="")
-                            //-     i.fa-solid.fa-cloud-arrow-down
-
-                            //- a.btn.btn-primary.mr-1(ng-click="")
-                            //-     i.fa-solid.fa-cloud-arrow-up
 
                             a.btn.btn-primary.mr-1(ng-click="viewer.tabs.add(viewer.tabs.active_tab.mode == 'route' ? 'route' : 'app', 'new')")
                                 i.fa-solid.fa-plus
@@ -218,7 +212,7 @@
                 .info-area(ng-if="viewer.info.show && viewer.tabs.active_tab")
                     .file-info-area(ng-if="!['route', 'app'].includes(viewer.tabs.active_tab.mode)")
                         .form-group.d-flex.p-3.pt-2.pb-2.bg-primary-lt(style="height: 40px;")
-                            h3.nowrap(style="max-width: 220px; overflow: hidden; text-overflow: ellipsis;") 
+                            h3.nowrap(style="max-width: 220px; overflow: hidden; text-overflow: ellipsis;")
                                 span {{viewer.tabs.active_tab.mode}}
 
                             .ml-auto(ng-if="!viewer.tabs.active_tab.new")
@@ -364,7 +358,7 @@
 
                     .route-info-area(ng-if="viewer.tabs.active_tab.mode == 'route'")
                         .form-group.d-flex.p-3.pt-2.pb-2.bg-primary-lt(style="height: 40px;")
-                            h3.nowrap(style="max-width: 220px; overflow: hidden; text-overflow: ellipsis;") 
+                            h3.nowrap(style="max-width: 220px; overflow: hidden; text-overflow: ellipsis;")
                                 span.btn.btn-sm.btn-primary.btn-circle.mr-2 route
                                 span {{viewer.tabs.active_tab.new ? 'new' : viewer.tabs.active_tab.data.package.title}}
                             .ml-auto(ng-if="!viewer.tabs.active_tab.new")
@@ -436,8 +430,7 @@
                         .editor-tabs(style="height: {{ viewer.debug.show ? 'calc(60vh - 60px)' : '100%' }} !important;")
                             .editor-tab-container(ui-sortable='data.sortable' ng-model="viewer.tabs.data")
                                 .editor-tab-editor-container(ng-if="viewer.tabs.data.length == 0")
-                                .editor-tab-editor-container(id='{{tab.id}}' ng-repeat="tab in viewer.tabs.data" ng-click="tab.activate()" class="{{viewer.tabs.active_tab.id == tab.id ? 'active' : 'inactive'}}")
-                                    
+                                .editor-tab-editor-container(id='{{tab.id}}' ng-repeat="tab in viewer.tabs.data" ng-click="tab.activate()" class="{{viewer.tabs.active_tab.id == tab.id ? 'active' : 'inactive'}}" ng-show="!tab.hide")
                                     //- app editor
                                     .monaco-area(ng-if="tab.mode == 'app'" style="height: {{ viewer.debug.show ? 'calc(60vh - 62px)' : '100%' }} !important;")
                                         .draggable.code-title.bg-primary.d-flex
@@ -448,6 +441,8 @@
                                                     span [app] {{tab.data.package.title}} 
                                                     small ({{tab.data.package.id}})
                                             .ml-auto
+                                            a.btn.btn-square.btn-sm.btn-primary.p-2(ng-click="viewer.tabs.hide(tab)")
+                                                i.fa-solid.fa-minus
                                             a.btn.btn-square.btn-sm.btn-primary.p-2(ng-click="viewer.tabs.remove(tab)")
                                                 i.fa-solid.fa-xmark
 
@@ -478,6 +473,8 @@
                                                     span [route] {{tab.data.package.title}} 
                                                     small ({{tab.data.package.id}})
                                             .ml-auto
+                                            a.btn.btn-square.btn-sm.btn-primary.p-2(ng-click="viewer.tabs.hide(tab)")
+                                                i.fa-solid.fa-minus
                                             a.btn.btn-square.btn-sm.btn-primary.p-2(ng-click="viewer.tabs.remove(tab)")
                                                 i.fa-solid.fa-xmark
 
@@ -501,6 +498,8 @@
                                                 .nowrap(ng-if="!tab.new")
                                                     span [{{tab.mode}}] {{tab.data.name}} 
                                             .ml-auto
+                                            a.btn.btn-square.btn-sm.btn-primary.p-2(ng-click="viewer.tabs.hide(tab)")
+                                                i.fa-solid.fa-minus
                                             a.btn.btn-square.btn-sm.btn-primary.p-2(ng-click="viewer.tabs.remove(tab)")
                                                 i.fa-solid.fa-xmark
 
@@ -580,6 +579,25 @@
 
                             div(style="height: calc(100% - 33px);")
                                 .debug-messages(style="overflow: auto; max-width: none; width: 100%; height: 100%; background: #000; color: #fff; padding: 8px; line-height: 1;" ng-bind-html="trustAsHtml(socket.log)")
+
+                        .d-flex.hidden-tabs
+                            .ml-auto
+                            .hidden-tab.bg-primary(ng-repeat="tab in viewer.tabs.hidden" ng-click="viewer.tabs.open(tab)")
+                                .title(ng-if="tab.mode == 'app'")
+                                    .nowrap(ng-if="tab.new")
+                                        span app/new
+                                    .nowrap(ng-if="!tab.new")
+                                        span app/{{tab.data.package.title}} 
+                                .title(ng-if="tab.mode == 'route'")
+                                    .nowrap(ng-if="tab.new")
+                                        span route/new
+                                    .nowrap(ng-if="!tab.new")
+                                        span route/{{tab.data.package.title}} 
+                                .title(ng-if="['model', 'controller', 'resources', 'themes', 'config'].includes(tab.mode)")
+                                    .nowrap(ng-if="tab.new")
+                                        span route/new
+                                    .nowrap(ng-if="!tab.new")
+                                        span {{tab.mode}}/{{tab.data.name}} 
 
                 .menu-area
                     .d-block
