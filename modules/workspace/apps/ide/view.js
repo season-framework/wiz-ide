@@ -310,8 +310,6 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
             let is_new = $scope.viewer.tabs.active_tab.new;
             let org_app_id = $scope.viewer.tabs.active_tab.org_app_id;
 
-            await loader.init();
-
             // set dic
             let dic = $scope.viewer.tabs.active_tab.dic;
             let dicv = {};
@@ -441,6 +439,7 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
             $(this).attr('src', src);
         });
 
+        await loader.init();
         await $scope.viewer.branch.changes();
         toastr.success('saved');
         await $timeout();
