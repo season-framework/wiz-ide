@@ -384,9 +384,8 @@ def git_commit():
         repo = git.Repo.init(branchfs.abspath())
         message = wiz.request.query("message", "commit")
         repo.index.commit(message)
-        if wiz.branch() not in ['master', 'main']:
-            origin = repo.remote(name='wiz')
-            origin.push(wiz.branch())
+        origin = repo.remote(name='wiz')
+        origin.push(wiz.branch())
     except Exception as e:
         wiz.response.status(500, str(e))
     wiz.response.status(200)
