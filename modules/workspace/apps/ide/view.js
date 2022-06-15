@@ -121,7 +121,9 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
     // cache binding
     $scope.cache = {};
     $scope.cache.apps = {};
+    $scope.cache.apps_dic = {};
     $scope.cache.routes = {};
+    $scope.cache.routes_dic = {};
 
     // event binding
     $scope.event = {};
@@ -320,7 +322,7 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
                     if (dic.data[key].length == 0 && key != 'default') {
                         delete dic.data[key];
                         dic.list.remove(key);
-                        dic.selected = 'default';
+                        $scope.viewer.tabs.active_tab.data.dic_selected = 'default';
                     } else {
                         dicv[key] = JSON.parse(dic.data[key]);
                     }
@@ -348,6 +350,7 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
                     // change renamed at opened tabs
                     for (let i = 0; i < $scope.viewer.tabs.data.length; i++) {
                         if ($scope.viewer.tabs.data[i].mode != 'app') continue;
+
                         if ($scope.viewer.tabs.data[i].org_app_id == org_app_id) {
                             $scope.viewer.tabs.data[i].org_app_id = data.package.id;
                             $scope.viewer.tabs.data[i].app_id = data.package.id;
@@ -372,7 +375,7 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
                     if (dic.data[key].length == 0 && key != 'default') {
                         delete dic.data[key];
                         dic.list.remove(key);
-                        dic.selected = 'default';
+                        $scope.viewer.tabs.active_tab.data.dic_selected = 'default';
                     } else {
                         dicv[key] = JSON.parse(dic.data[key]);
                     }
@@ -661,6 +664,8 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
 
         obj.activate = async () => {
             while (!obj.editor) await $timeout(100);
+            if ($scope.viewer.tabs.active_tab && $scope.viewer.tabs.active_tab.id == obj.id)
+                return;
             obj.editor.focus();
             $scope.viewer.tabs.active_tab = obj;
             $scope.data.hash_id = 'app/' + obj.app_id;
@@ -671,30 +676,36 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
         // dic builder
         if (typeof (obj.data.dic) == 'string') obj.data.dic = {};
 
-        obj.dic = {};
-        obj.dic.list = ['default'];
-        obj.dic.data = {};
-        try {
-            for (let lang in obj.data.dic) {
-                if (lang != 'default')
-                    obj.dic.list.push(lang);
-                obj.dic.data[lang] = JSON.stringify(obj.data.dic[lang], null, 4);
+        if ($scope.cache.apps_dic[obj.app_id]) {
+            obj.dic = $scope.cache.apps_dic[obj.app_id];
+        } else {
+            obj.dic = {};
+            obj.dic.list = ['default'];
+            obj.dic.data = {};
+            try {
+                for (let lang in obj.data.dic) {
+                    if (lang != 'default')
+                        obj.dic.list.push(lang);
+                    obj.dic.data[lang] = JSON.stringify(obj.data.dic[lang], null, 4);
+                }
+            } catch (e) {
             }
-        } catch (e) {
-        }
-        if (!obj.dic.data.default) obj.dic.data.default = '{\n    "hello": "hello, World!"\n}';
-        obj.dic.selected = 'default';
-        obj.dic.create = async (value) => {
-            let test = /^[a-zA-Z]+$/.test(value);
-            if (!test || value.length != 2) {
-                return alert('Language must be 2 length alphabets.');
+            if (!obj.dic.data.default) obj.dic.data.default = '{\n    "hello": "hello, World!"\n}';
+            obj.dic.create = async (value) => {
+                let test = /^[a-zA-Z]+$/.test(value);
+                if (!test || value.length != 2) {
+                    return alert('Language must be 2 length alphabets.');
+                }
+                value = value.toLowerCase();
+                if (!obj.dic.data[value]) obj.dic.data[value] = '{\n    "hello": "hello, World!"\n}';
+                if (!obj.dic.list.includes(value)) obj.dic.list.push(value);
+                obj.dic.new = '';
+                await $timeout();
             }
-            value = value.toLowerCase();
-            if (!obj.dic.data[value]) obj.dic.data[value] = '{\n    "hello": "hello, World!"\n}';
-            if (!obj.dic.list.includes(value)) obj.dic.list.push(value);
-            obj.dic.new = '';
-            await $timeout();
+            $scope.cache.apps_dic[obj.app_id] = obj.dic;
         }
+
+        obj.dic_selected = 'default';
         obj.dic.monaco = monaco_option('json', obj);
 
         // code builder
@@ -730,6 +741,8 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
 
         obj.activate = async () => {
             while (!obj.editor) await $timeout(100);
+            if ($scope.viewer.tabs.active_tab && $scope.viewer.tabs.active_tab.id == obj.id)
+                return;
             obj.editor.focus();
             $scope.viewer.tabs.active_tab = obj;
             $scope.data.hash_id = 'route/' + obj.app_id;
@@ -740,31 +753,38 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
         // dic builder
         if (typeof (obj.data.dic) == 'string') obj.data.dic = {};
 
-        obj.dic = {};
-        obj.dic.list = ['default'];
-        obj.dic.data = {};
-        try {
-            for (let lang in obj.data.dic) {
-                if (lang != 'default')
-                    obj.dic.list.push(lang);
-                obj.dic.data[lang] = JSON.stringify(obj.data.dic[lang], null, 4);
+        if ($scope.cache.routes_dic[obj.app_id]) {
+            obj.dic = $scope.cache.routes_dic[obj.app_id];
+        } else {
+            obj.dic = {};
+            obj.dic.list = ['default'];
+            obj.dic.data = {};
+            try {
+                for (let lang in obj.data.dic) {
+                    if (lang != 'default')
+                        obj.dic.list.push(lang);
+                    obj.dic.data[lang] = JSON.stringify(obj.data.dic[lang], null, 4);
+                }
+            } catch (e) {
             }
-        } catch (e) {
-        }
-        if (!obj.dic.data.default) obj.dic.data.default = '{\n    "hello": "hello, World!"\n}';
-        obj.dic.selected = 'default';
-        obj.dic.create = async (value) => {
-            let test = /^[a-zA-Z]+$/.test(value);
-            if (!test || value.length != 2) {
-                return alert('Language must be 2 length alphabets.');
+            if (!obj.dic.data.default) obj.dic.data.default = '{\n    "hello": "hello, World!"\n}';
+            obj.dic.create = async (value) => {
+                let test = /^[a-zA-Z]+$/.test(value);
+                if (!test || value.length != 2) {
+                    return alert('Language must be 2 length alphabets.');
+                }
+                value = value.toLowerCase();
+                if (!obj.dic.data[value]) obj.dic.data[value] = '{\n    "hello": "hello, World!"\n}';
+                if (!obj.dic.list.includes(value)) obj.dic.list.push(value);
+                obj.dic.new = '';
+                await $timeout();
             }
-            value = value.toLowerCase();
-            if (!obj.dic.data[value]) obj.dic.data[value] = '{\n    "hello": "hello, World!"\n}';
-            if (!obj.dic.list.includes(value)) obj.dic.list.push(value);
-            obj.dic.new = '';
-            await $timeout();
+
+            $scope.cache.routes_dic[obj.app_id] = obj.dic;
         }
+
         obj.dic.monaco = monaco_option('json', obj);
+        obj.dic_selected = 'default';
 
         // code builder
         obj.code = {};
@@ -808,6 +828,8 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
                 while (!obj.editor) {
                     await $timeout(100);
                 }
+                if ($scope.viewer.tabs.active_tab && $scope.viewer.tabs.active_tab.id == obj.id)
+                    return;
                 obj.editor.focus();
             }
             $scope.viewer.tabs.active_tab = obj;
@@ -974,6 +996,7 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
                     }
                 }
                 delete $scope.cache.apps[deleted];
+                delete $scope.cache.apps_dic[deleted];
             } else if (tab.mode == 'route') {
                 let deleted = tab.app_id;
                 for (let i = 0; i < obj.data.length; i++) {
@@ -983,6 +1006,7 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
                     }
                 }
                 delete $scope.cache.routes[deleted];
+                delete $scope.cache.routes_dic[deleted];
             }
 
             if (obj.active_tab.id == tab.id) {

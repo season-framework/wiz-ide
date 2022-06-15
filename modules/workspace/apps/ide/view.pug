@@ -326,7 +326,7 @@
                                 .col.col-form-select
                                     .form-selectgroup
                                         label.form-selectgroup-item(ng-repeat="item in viewer.tabs.active_tab.dic.list")
-                                            input.form-selectgroup-input(type="radio" name="lang-dic" value="{{item}}" ng-model="viewer.tabs.active_tab.dic.selected")
+                                            input.form-selectgroup-input(type="radio" name="lang-dic" value="{{item}}" ng-model="viewer.tabs.active_tab.dic_selected")
                                             span.form-selectgroup-label {{ item }}
                                             
                             .form-group.d-flex.p-3.pt-1.pb-1.bg-secondary
@@ -417,7 +417,7 @@
                                 .col.col-form-select
                                     .form-selectgroup
                                         label.form-selectgroup-item(ng-repeat="item in viewer.tabs.active_tab.dic.list")
-                                            input.form-selectgroup-input(type="radio" name="lang-dic" value="{{item}}" ng-model="viewer.tabs.active_tab.dic.selected")
+                                            input.form-selectgroup-input(type="radio" name="lang-dic" value="{{item}}" ng-model="viewer.tabs.active_tab.dic_selected")
                                             span.form-selectgroup-label {{ item }}
 
                             .form-group.d-flex.p-3.pt-1.pb-1.bg-secondary(ng-if="!viewer.tabs.active_tab.new")
@@ -454,14 +454,14 @@
                                             a.btn.btn-square.btn-sm.p-2(ng-click="tab.code.select('js')" class="{{tab.code.target == 'js' ? 'text-dark' : 'bg-primary'}}") JS
                                             a.btn.btn-square.btn-sm.p-2(ng-click="tab.code.select('css')" class="{{tab.code.target == 'css' ? 'text-dark' : 'bg-primary'}}") CSS
                                             a.btn.btn-square.btn-sm.p-2(ng-click="tab.code.select('dic')" class="{{tab.code.target == 'dic' ? 'text-dark' : 'bg-primary'}}") Dic
-                                                span(ng-if="tab.dic.selected != 'default'") ({{tab.dic.selected}})
+                                                span(ng-if="tab.dic_selected != 'default'") ({{tab.dic_selected}})
                                             a.btn.btn-square.btn-sm.p-2(ng-click="tab.code.select('preview')" class="{{tab.code.target == 'preview' ? 'text-dark' : 'bg-primary'}}") Preview
 
                                         .monaco-editor-container(ng-if="tab.show")
                                             div(ng-if="!['preview', 'dic'].includes(tab.code.target)" ng-model="tab.data[tab.code.target]" ui-monaco-opts="tab.monaco" ui-monaco)
                                             div(ng-if="tab.code.target == 'preview'")
                                                 iframe.preview(style="width: 100%; height: 100%;" ng-src="{{tab.data.package.viewuri ? tab.data.package.viewuri : '{$ wiz.url('ui/workspace/preview/app') $}/' + tab.data.package.id}}")
-                                            div(ng-if="tab.code.target == 'dic'" ng-model="tab.dic.data[tab.dic.selected]" ui-monaco-opts="tab.dic.monaco" ui-monaco)
+                                            div(ng-if="tab.code.target == 'dic'" ng-model="tab.dic.data[tab.dic_selected]" ui-monaco-opts="tab.dic.monaco" ui-monaco)
                                             
                                     //- route editor
                                     .monaco-area(ng-if="tab.mode == 'route'" style="height: {{ viewer.debug.show ? 'calc(60vh - 60px)' : '100%' }} !important;")
@@ -481,7 +481,7 @@
                                         .code-select.bg-primary.d-flex
                                             a.btn.btn-square.btn-sm.p-2(ng-click="tab.code.select('controller')" class="{{tab.code.target == 'controller' ? 'text-dark' : 'bg-primary'}}") Controller
                                             a.btn.btn-square.btn-sm.p-2(ng-click="tab.code.select('dic')" class="{{tab.code.target == 'dic' ? 'text-dark' : 'bg-primary'}}") Dic
-                                                span(ng-if="tab.dic.selected != 'default'") ({{tab.dic.selected}})
+                                                span(ng-if="tab.dic_selected != 'default'") ({{tab.dic_selected}})
                                             a.btn.btn-square.btn-sm.p-2(ng-click="tab.code.select('preview')" class="{{tab.code.target == 'preview' ? 'text-dark' : 'bg-primary'}}") Preview
 
                                         .monaco-editor-container(ng-if="tab.show")
@@ -489,7 +489,7 @@
                                             div(ng-if="tab.code.target == 'preview'")
                                                 iframe.preview(ng-if="tab.data.package.viewuri" style="width: 100%; height: 100%;" ng-src="{{tab.data.package.viewuri}}")
                                                 .p-4.bg-primary-lt.text-center(style="width: 100%; height: 100%") Set view uri
-                                            div(ng-if="tab.code.target == 'dic'" ng-model="tab.dic.data[tab.dic.selected]" ui-monaco-opts="tab.dic.monaco" ui-monaco)
+                                            div(ng-if="tab.code.target == 'dic'" ng-model="tab.dic.data[tab.dic_selected]" ui-monaco-opts="tab.dic.monaco" ui-monaco)
 
                                     //- file editor
                                     .monaco-area(ng-if="['model', 'controller', 'resources', 'themes', 'config'].includes(tab.mode)" style="height: {{ viewer.debug.show ? 'calc(60vh - 62px)' : '100%' }} !important;")

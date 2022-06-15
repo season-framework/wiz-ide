@@ -699,6 +699,8 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
 
         obj.activate = async () => {
             while (!obj.editor) await $timeout(100);
+            if ($scope.viewer.tabs.active_tab && $scope.viewer.tabs.active_tab.id == obj.id)
+                return;
             obj.editor.focus();
             $scope.viewer.tabs.active_tab = obj;
             $scope.data.hash_id = 'app/' + obj.app_id;
@@ -768,6 +770,8 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
 
         obj.activate = async () => {
             while (!obj.editor) await $timeout(100);
+            if ($scope.viewer.tabs.active_tab && $scope.viewer.tabs.active_tab.id == obj.id)
+                return;
             obj.editor.focus();
             $scope.viewer.tabs.active_tab = obj;
             $scope.data.hash_id = 'route/' + obj.app_id;
@@ -846,6 +850,8 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
                 while (!obj.editor) {
                     await $timeout(100);
                 }
+                if ($scope.viewer.tabs.active_tab && $scope.viewer.tabs.active_tab.id == obj.id)
+                    return;
                 obj.editor.focus();
             }
             $scope.viewer.tabs.active_tab = obj;
