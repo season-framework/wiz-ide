@@ -149,13 +149,13 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
                     html: 'pug', css: 'scss', js: 'javascript'
                 }
             },
-            api: '',
+            api: 'def status():\n    wiz.response.status(200, dict())',
             controller: '',
             socketio: '',
-            dic: {},
-            html: '',
+            dic: { 'default': { 'hello': 'Hello, World!' } },
+            html: '.container\n    .card Card',
             css: '',
-            js: ''
+            js: 'let wiz_controller = async ($sce, $scope, $timeout) => {\n    let _$timeout = $timeout;\n    $timeout = (timestamp) => new Promise((resolve) => _$timeout(resolve, timestamp));\n}'
         }
         return data;
     }
@@ -175,7 +175,7 @@ let wiz_controller = async ($sce, $scope, $timeout) => {
                 route: '',
                 controller: ''
             },
-            controller: '',
+            controller: '# wiz.menu.sub \\\n#     .add(title="Button", url="/style") \\\n#     .add(title="Form", url="/style/form") \\\n#     .build()\n\n# wiz.response.render("/tutorial/database", "page.tutorial")\n# wiz.response.render("/tutorial/chat", "page.tutorial")\n# wiz.response.redirect("/tutorial/database")',
             dic: {}
         }
         return data;
